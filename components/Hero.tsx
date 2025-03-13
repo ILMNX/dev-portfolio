@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import Image from "next/image"
 import profilePic from "@/public/profile.png"
 import obj from "@/public/object.png"
+import { FiArrowRight } from "react-icons/fi"
 
 
 
@@ -34,7 +35,9 @@ export const Hero = () => {
 
     return(
         <motion.section
-        style={{backgroundImage}}
+        style={{
+            backgroundImage
+        }}
         className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200"
         >
             <div className="z-10 flex flex-col items-center">
@@ -45,7 +48,7 @@ export const Hero = () => {
                 <h1 className="max-w-3xl bg-gradient-to-br from-white to-gray-400 bg-clip-text font-black leading-tight text-transparent md:text-7xl"> 
                     Gilbert Hasiholan
                 </h1>
-                <Image
+                {/* <Image
                     src={profilePic}
                     alt ="Profile Picture"
                     width = {250}
@@ -58,8 +61,38 @@ export const Hero = () => {
                         className="rounded-2xl mx-auto "
                     
                     />
-                </div>
+                    
+                </div> */}
 
+                <p className="my-6 max-w-xl"> Fullstack Developer based in Bandar Lampung, With over 2 years of experience</p>
+
+                <motion.button
+                    style={{
+                        border,
+                        boxShadow
+                    }}
+                    whileHover={
+                        {
+                            scale: 1.05,
+                            boxShadow: `0px 4px 24px ${color}`
+                        }
+                    }
+                    whileTap={
+                        {
+                            scale: 0.985
+                        }
+                    }
+                    className="flex w-fit items-center gap-2 rounded-ful px-4 py-2"
+                >
+                    Download CV
+                <FiArrowRight className=""/>   
+
+                </motion.button>
+
+            </div>
+            <div className="bg-circle-container">
+                <div className="bg-circle-background"></div>
+                <div className="bg-circle"></div>
             </div>
 
         </motion.section>
