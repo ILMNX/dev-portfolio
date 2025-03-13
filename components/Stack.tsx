@@ -4,14 +4,19 @@ import { IoLogoNodejs } from 'react-icons/io';
 import { SiTypescript } from 'react-icons/si';
 import { SiMongodb } from 'react-icons/si';
 import { TbBrandNextjs } from 'react-icons/tb';
+import { SiMysql } from "react-icons/si";
+import { FaLaravel } from "react-icons/fa";
+import { FaDocker } from "react-icons/fa";
+import { FaPython } from "react-icons/fa";
 
 
 const stackItems =[
     {id:1,name:"React",icon:FaReact, color: '#61DAFB'},
-    {id:2,name:"Node.js",icon:IoLogoNodejs, color: '#339933'},
+    {id:2,name:"Laravel",icon:FaLaravel, color: '#FF2D20'},
     {id:3,name:"Typescript",icon:SiTypescript, color: '#3178C6'},
-    {id:4,name:"MongoDB",icon:SiMongodb, color: '#47A248'},
+    {id:4,name:"MySQL",icon:SiMysql, color: '#4479A1'},
     {id:5,name:"Next.js",icon:TbBrandNextjs, color: '#000000'},
+    {id:6,name:"Python",icon:FaPython, color: '#3776AB'},
 ]
 export const Stack = () => {
     return(

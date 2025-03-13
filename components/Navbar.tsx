@@ -22,6 +22,16 @@ export const Navbar = () => {
     const closeNav = () => {
         setNav(false)
     }
+    const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+        e.preventDefault()
+        const element = document.querySelector(path)
+        closeNav()
+        
+        element?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        })
+    }
 
     return(
        <div className="z-50 fixed flex justify-center w-full text-white font-bold">
@@ -31,8 +41,12 @@ export const Navbar = () => {
                 <ul className="flex flex-row p-2 space-x-8">
                     {navLinks.map((link, index) => (    
                         <li key={index}>
-                            <Link href={link.path} className="transform hover:text-white/50 
-                                                                transition-all duration-300 ease-in-out">
+                             <Link 
+                                href={link.path} 
+                                onClick={(e) => handleScroll(e, link.path)}
+                                className="transform hover:text-white/50 
+                                transition-all duration-300 ease-in-out"
+                            >
                                 {link.title}
                             </Link>     
                         </li>
@@ -50,7 +64,11 @@ export const Navbar = () => {
                 <ul className="flex flex-col items-center justify-center space-y-8 h-full">
                     {navLinks.map((link, index) => (    
                         <li key={index}>
-                            <Link href={link.path} onClick={closeNav} className="text-5xl">
+                          <Link 
+                                href={link.path} 
+                                onClick={(e) => handleScroll(e, link.path)}
+                                className="text-5xl"
+                            >
                                 {link.title}
                             </Link>     
                         </li>

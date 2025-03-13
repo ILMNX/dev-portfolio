@@ -16,20 +16,64 @@ const projects = [
 
 export const Portfolio = () => {
     const [selectedProject, setSelectedProject] = useState(projects[0])
-    const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"]
-    const color = useMotionValue(COLORS_TOP[0])
-        useEffect(() => {
-                animate(color,COLORS_TOP,{
-                    ease: "easeInOut",
-                    duration : 10,
-                    repeat: Infinity,
-                    repeatType: "mirror"
-                })
-        },[])
-    const backgroundImage = useMotionTemplate `radial-gradient(125% 125% at 50% 0%, #000 50%, ${color})`
+    const COLORS_TOP = ["#00ffbb", "#4444ff", "#ff44ff", "#ff4444"]
+    const COLORS_BOTTOM = ["#000833", "#000833", "#330033", "#330033"]
+    const primaryColor = useMotionValue(COLORS_TOP[0])
+    const secondaryColor = useMotionValue(COLORS_BOTTOM[0])
+
+    useEffect(() => {
+        animate(primaryColor, COLORS_TOP, {
+            ease: "easeInOut",
+            duration: 10,
+            repeat: Infinity,
+            repeatType: "mirror"
+        })
+
+        animate(secondaryColor, COLORS_BOTTOM, {
+            ease: "easeInOut",
+            duration: 15, // Slightly different duration for more dynamic effect
+            repeat: Infinity,
+            repeatType: "mirror"
+        })
+    }, [])
+    const backgroundImage = useMotionTemplate`
+        linear-gradient(
+            45deg,
+            ${secondaryColor} 0%,
+            ${primaryColor} 35%,
+            ${secondaryColor} 50%,
+            ${primaryColor} 65%,
+            ${secondaryColor} 100%
+        ),
+        radial-gradient(
+            circle at top right,
+            ${primaryColor} 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at bottom left,
+            ${secondaryColor} 0%,
+            transparent 50%
+        )
+    `
 
     return(
-        <motion.section style={{backgroundImage}}id="portfolio" className="py-32 text-white">
+        <motion.section  style={{
+            backgroundImage,
+            backgroundBlendMode: "overlay",
+            backgroundSize: "200% 200%"
+        }}
+        animate={{
+            backgroundPosition: ["0% 0%", "100% 100%"]
+        }}
+        transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "linear"
+        }}
+        className="py-32 text-white relative "
+        id="portfolio">
             <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12">
                 <div>
 
