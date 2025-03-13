@@ -6,6 +6,7 @@ import { LogoAnimation } from "@/components/LogoAnimation";
 import Image from "next/image";
 import { Portfolio } from "@/components/Portfolio";
 import { KeyMetrics } from "@/components/KeyMetrics";
+import { Services } from "@/components/Services";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <LogoAnimation/>
       <Portfolio/>
       <KeyMetrics/>
+      <Services/>
 
    </>
   );
