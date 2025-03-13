@@ -5,6 +5,7 @@ import { LogoAnimation } from "@/components/LogoAnimation";
 
 import Image from "next/image";
 import { Portfolio } from "@/components/Portfolio";
+import { KeyMetrics } from "@/components/KeyMetrics";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <Stack />
       <LogoAnimation/>
       <Portfolio/>
+      <KeyMetrics/>
 
    </>
   );
