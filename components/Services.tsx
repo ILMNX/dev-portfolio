@@ -11,13 +11,13 @@ export const Services = () => {
         <section className="text-white py-20" id="services">
             <div className="container mx-auto flex flex-col md:flex-row">
                 <div className="md:w-1/3 pr-8 mb-12 md:mb-0">
-                    <h2 className="text-6xl font-extrabold sticky top-20">Services</h2>
+                    <h2 className="text-6xl text-purple-300 font-extrabold sticky top-20">Services</h2>
                     <h6>We offer exceptional service with complimentary hugs.</h6>
                 </div>
                 <div className="md:w-3/4">
                     {services.map(service => (
                         <div className="mb-16 flex items-start" key={service.id}>
-                            <div className="text-gray-300 font-bold text-5xl mr-6">
+                            <div className="text-purple-300 font-bold text-5xl mr-6">
                                 {service.id}
                             </div>
                             <div>

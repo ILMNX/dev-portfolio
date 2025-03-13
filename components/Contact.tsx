@@ -4,11 +4,11 @@ import {motion} from "framer-motion"
 
 export const Contact = () => {
     return(
-        <section id="contact" className="max-w-[1200px] mx-auto px-4text-white py-32">
+        <section id="contact" className="overflow-x-clip py-32 text-white max-w-[1200px] mx-auto px-4">
             <motion.div
-                initial={{opacity: 0, y:20}}
+                initial={{opacity: 0, y: 20}}
                 transition={{duration: 0.8}}
-                whileInView={{opacity: 1,y:0}}
+                whileInView={{opacity: 1, y: 0}}
                 className="grid lg:grid-cols-2 gap-16"
                 viewport={{once: true}}
             >
@@ -29,21 +29,22 @@ export const Contact = () => {
                     >
                         <div className="space-y-2">
                             <p className="text-lg text-gray-300">Phone</p>
-                            <a href="tel:+62 878 2209 1974" className="text-2xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2">
-                                +62 878 2209 1974
+                            <a href=" https://wa.me/6285110806407?text=Hi Gilbert!, I'm%20interested%20in%20your%20programming%20service%20" target="_blank" 
+                            className="text-2xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2">
+                                +62 851 1080 6407
                             </a>
                             <span className="text-gray-500">⇗</span>
                         </div>
                         <div className="space-y-2">
                             <p className="text-lg text-gray-300">Email</p>
-                            <a href="mailto : gilbertsibuea8539@gmail.com" className="text-3xl lg:text-4xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2">
+                            <a href="mailto : gilbertsibuea8539@gmail.com" className="text-2xl lg:text-3xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2">
                                 gilbertsibuea8539@gmail.com
                             </a>
                             <span className="text-gray-500">⇗</span>
                         </div>
                         <div className="space-y-2">
                             <p className="text-lg text-gray-300">LinkedIn</p>
-                            <a href="https://www.linkedin.com/in/gilbert-sibuea-93b524246/" className="text-3xl lg:text-4xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2">
+                            <a href="https://www.linkedin.com/in/gilbert-sibuea-93b524246/" className="text-2xl lg:text-4xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2">
                                Gilbert Sibuea
                             </a>
                             <span className="text-gray-500">⇗</span>
