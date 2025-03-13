@@ -6,7 +6,6 @@ import proj1 from "@/public/proj1.png"
 import proj2 from "@/public/proj2.png"
 import proj3 from "@/public/proj3.png"
 import { useMotionTemplate, useMotionValue, motion, animate } from "framer-motion"
-import { div, p } from "framer-motion/client"
 
 const projects = [
     {id:1, year: 2024, title: "Project 1 - Making a machine learning program", description: "This is my First Project", image: proj1},

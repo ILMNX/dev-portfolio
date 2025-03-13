@@ -1,14 +1,10 @@
 "use client"
 
-import { use } from "react"
 import { useEffect } from "react"
 import { useMotionValue } from "framer-motion"
 import { animate } from "framer-motion"
 import { useMotionTemplate } from "framer-motion"
 import { motion } from "framer-motion"
-import Image from "next/image"
-import profilePic from "@/public/profile.png"
-import obj from "@/public/object.png"
 import { FiArrowRight } from "react-icons/fi"
 
 
