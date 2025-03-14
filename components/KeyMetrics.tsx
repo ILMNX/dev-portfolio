@@ -2,13 +2,14 @@
 
 import React from "react";
 import { motion, useInView } from "framer-motion";
+import { desc } from "framer-motion/client";
 
 const metrics = [
-    { id: 1, value: '5+', label: 'Projects Completed' },
-    { id: 2, value: '100%', label: 'Satisfaction Rate' },
-    { id: 3, value: '4.9/5', label: 'Average Rating' },
-    { id: 4, value: '100%', label: 'On-Time Delivery' },
-    { id: 5, value: '100%', label: 'On-Budget Delivery' }
+    { id: 1, value: '3+', label: 'Years of Experience', description: 'Dedicated to mastering skill in full-stack development.' },
+    { id: 2, value: '20+', label: 'Projects Completed', description:'From small application to complex web platforms.'},
+    { id: 3, value: '5+', label: 'Technologies Mastered', description:'Proficient in various programming languages and frameworks.' },
+    { id: 4, value: '99%', label: 'Code Quality', description:'Ensuring clean and maintainable code.' },
+    { id: 5, value: '300+', label: 'Commits on Github', description:'Active in contributing to open-source and personal projects.'},
 
 
 ]
@@ -59,6 +60,15 @@ export const KeyMetrics = () => {
                             className="text-xl font-semibold mb-2"
                         >
                             {metric.label}
+                            
+                        </motion.p>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={ isInView ? {opacity: 1} : {opacity: 0} }
+                            transition={{ delay:1 + index * 0.1, duration: 0.4 }}
+                            className="text-gray-400"
+                        >
+                            {metric.description}
                             
                             </motion.p>
                     </motion.div>
