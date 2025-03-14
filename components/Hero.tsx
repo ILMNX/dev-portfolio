@@ -22,7 +22,7 @@ export const Hero = () => {
             repeat: Infinity,
             repeatType: "mirror"
         })
-    },[])
+    },[color])
 
     const backgroundImage = useMotionTemplate `radial-gradient(125% 125% at 50% 0%, #000 50%, ${color})`
     const border = useMotionTemplate `1px solid ${color}`
@@ -63,6 +63,7 @@ export const Hero = () => {
                 <p className="my-6 max-w-xl"> Fullstack Developer based in Bandar Lampung, With over 2 years of experience</p>
 
                 <motion.button
+                    onClick={() => window.open('https://www.canva.com/design/DAGhsbBQGPo/Cq0wE9ktnUkrnOQnH4F9KA/view?utm_content=DAGhsbBQGPo&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h6f3875e230', '_blank')}
                     style={{
                         border,
                         boxShadow

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion, useInView } from "framer-motion";
-import { desc } from "framer-motion/client";
 
 const metrics = [
     { id: 1, value: '3+', label: 'Years of Experience', description: 'Dedicated to mastering skill in full-stack development.' },
