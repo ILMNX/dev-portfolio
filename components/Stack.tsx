@@ -32,26 +32,26 @@ export const Stack = () => {
         <section className='py-16 glass' id='stack'>
             <div className='max-w-[1200px] mx-auto px-4 text-center'>
                 <h2 className='text-5xl text-center text-gray-200 mb-4'>My Stack</h2>
-                <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
+                <div className='grid grid-cols-5 grid-rows-2 gap-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-5'>
                     {stackItems.map((item) => (
                         <motion.div 
                             key={item.id}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                            className='flex items-center justify-center flex-col rounded-xl p-4 cursor-pointer bg-white/5 hover:bg-white/10'
+                            className='flex items-center justify-center flex-col rounded-xl p-2 sm:p-4 cursor-pointer bg-white/5 hover:bg-white/10'
                         >
                             <motion.div 
-                                className='mb-4 p-6 rounded-xl'
+                                className='mb-2 sm:mb-4 p-2 sm:p-6 rounded-xl'
                                 whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                                 transition={{ duration: 0.5 }}
                             >
                                 {React.createElement(item.icon, {
-                                    className: "w-32 h-32",
+                                    className: "w-8 h-8 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32",
                                     style: { color: item.color }
                                 })}
                             </motion.div>
-                            <p className='text-gray-400 font-semibold'>{item.name}</p>
+                            <p className='text-xs sm:text-sm md:text-base text-gray-400 font-semibold'>{item.name}</p>
                         </motion.div>
                     ))}
                 </div>
