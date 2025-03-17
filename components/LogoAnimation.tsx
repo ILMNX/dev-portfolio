@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import figma from "@/public/figma.png";
 import colab from "@/public/colab.png";
-import firebase from "@/public/firebase.png";
+import firebase from "@/public/Firebase.png";
 import vscode from "@/public/vscode.png";
 import azure from "@/public/azure.png";
 import github from "@/public/github.png";
