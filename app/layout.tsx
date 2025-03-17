@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {Poppins} from "next/font/google"
 import "./globals.css";
+import Preloader from "../components/Preloader";
 
 const poppins = Poppins({subsets: ["latin"],weight:["100", "200", "300", "400", "700", "800", "900"] }); 
 
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body
         className={`${poppins.className} antialiased`}
       >
+        <Preloader />
         {children}
       </body>
     </html>

@@ -1,11 +1,10 @@
 export const Services = () => {
     const services = [
-        {id : 1, title: "Web Development", description: "We build websites that serve as powerful marketing tools and bring memorable brand experiences."},
-        {id : 2, title: "Mobile Applications", description: "We create mobile applications that support the most popular operating systems such as iOS and Android."},
-        {id:3, title: "UI/UX Design", description: "We create unique design for your product that will help your business stand out."},
-        {id:4, title: "QA & Testing", description: "Our experts test your product on all stages of development in order to make sure everything works perfectly."},
-        {id:5, title: "IT Consulting", description: "Our IT consulting services provide you with the digital roadmap that you need to succeed."},
-        {id:6, title: "Cloud Solutions", description: "We offer cloud solutions that are right for your business."},
+        {id : 1, title: "Web Development", description: "I build websites that serve as powerful marketing tools and bring memorable brand experiences."},
+        {id : 2, title: "Mobile Applications", description: "I create mobile application that support the most popular operating systems such as Android."},
+        {id:3, title: "UI/UX Design", description: "I create unique design for your product that will help your business stand out."},
+        {id:4, title: "Machine Learning", description: "I create machine learning program that will help your business to be more efficient and effective."},
+        {id:5, title: "Artificial Intelligence", description: "I create artificial intelligence program that will help your business to be more efficient and effective."},
     ]
     return (
         <section className="text-white py-20 px-4 md:px-8" id="services">
@@ -14,7 +13,7 @@ export const Services = () => {
                     <h2 className="text-4xl sm:text-5xl md:text-6xl text-purple-300 font-extrabold md:sticky md:top-20">
                         Services
                     </h2>
-                    <h6 className="mt-4 text-gray-300">We offer exceptional service with complimentary hugs.</h6>
+                    <h6 className="mt-4 text-gray-300">Best Service for your business with the best price and quality</h6>
                 </div>
                 <div className="md:w-3/4">
                     {services.map(service => (

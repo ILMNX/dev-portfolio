@@ -2,15 +2,16 @@
 
 import React,{useState,useEffect} from "react"
 import Image from "next/image"
-import proj1 from "@/public/proj1.png"
-import proj2 from "@/public/proj2.png"
+import Link from "next/link"
+import proj1 from "@/public/project1.png"
+import proj2 from "@/public/project2.png"
 import proj3 from "@/public/proj3.png"
 import { useMotionTemplate, useMotionValue, motion, animate } from "framer-motion"
 
 const projects = [
-    {id:1, year: 2024, title: "Project 1 - Making a machine learning program", description: "This is my First Project", image: proj1},
-    {id:2, year: 2025, title: "Project 2", description: "This is my Second Project", image: proj2}, 
-    {id:3, year: 2026, title: "Project 3", description: "This is my Third Project", image: proj3}
+    {id:1, year: 2024, title: "E-Retirement", description: "E-retirement is platform created to manage retirement funds", image: proj1},
+    {id:2, year: 2024, title: "ChatGPT Table Maker", description: "ChatGPT Table Maker is a tool that allows you to copy table in ChatGPT and paste it in word or excel table format", image: proj2}, 
+    {id:3, year: 2024, title: "Plant data extraction", description: "Plant data extraction is a tool that allows you to extract data from plant pdf using python", image: proj3}
 ]
 
 export const Portfolio = () => {
@@ -30,7 +31,7 @@ export const Portfolio = () => {
 
         animate(secondaryColor, COLORS_BOTTOM, {
             ease: "easeInOut",
-            duration: 15, // Slightly different duration for more dynamic effect
+            duration: 15, 
             repeat: Infinity,
             repeatType: "mirror"
         })
@@ -99,7 +100,26 @@ export const Portfolio = () => {
                         
                         </div>
                     ))}
-                    </div>
+
+                    <Link href="/projects" className="inline-block">
+                        <motion.button
+                            whileHover={{ 
+                                scale: 1.05,
+                                boxShadow: "0 0 20px rgba(139, 92, 246, 0.5)",
+                            }}
+                            whileTap={{ scale: 0.95 }}
+                            className="mt-8 px-8 py-3 bg-gradient-to-r from-violet-500 via-violet-600 to-violet-500 
+                                     text-white rounded-lg font-semibold relative overflow-hidden group
+                                     transition-all duration-300 ease-out"
+                        >
+                            <span className="relative z-10">View All Projects</span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-violet-600 
+                                        opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] 
+                                        bg-[length:250%_250%] group-hover:bg-[position:100%_100%] transition-[background-position] duration-500" />
+                        </motion.button>
+                    </Link>
+                </div>
 
                 <Image
                     src={selectedProject.image.src}
@@ -109,7 +129,6 @@ export const Portfolio = () => {
                     height={450}
                 />
             </div>
-
         </motion.section>
     )
 }

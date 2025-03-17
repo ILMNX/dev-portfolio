@@ -2,34 +2,34 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import udemy from "@/public/udemy.png";
-import fiverr from "@/public/fiverr.png";
-import elementor from "@/public/elementor.png";
-import logitech from "@/public/logitech.png";
-import oracle from "@/public/oracle.png";
+import figma from "@/public/figma.png";
+import colab from "@/public/colab.png";
+import firebase from "@/public/firebase.png";
+import vscode from "@/public/vscode.png";
+import azure from "@/public/azure.png";
+import github from "@/public/github.png";
+
 
 const images =[
-    {src: udemy, alt: "udemy"},
-    {src: fiverr, alt: "fiverr"},
-    {src: elementor, alt: "elementor"},
-    {src: logitech, alt: "logitech"},
-    {src: oracle, alt: "oracle"},
-    {src: udemy, alt: "udemy"},
-    {src: fiverr, alt: "fiverr"},
-    {src: elementor, alt: "elementor"},
-    {src: logitech, alt: "logitech"},
-    {src: oracle, alt: "oracle"},
-    {src: udemy, alt: "udemy"},
-    {src: fiverr, alt: "fiverr"},
-    {src: elementor, alt: "elementor"},
-    {src: logitech, alt: "logitech"},
-    {src: oracle, alt: "oracle"},
-    {src: udemy, alt: "udemy"},
-    {src: fiverr, alt: "fiverr"},
-    {src: elementor, alt: "elementor"},
-    {src: logitech, alt: "logitech"},
-    {src: oracle, alt: "oracle"},
-
+    {src: figma, alt: "figma"},
+    {src: colab, alt: "colab"},
+    {src: firebase, alt: "firebase"},
+    {src: vscode, alt: "vscode"},
+    {src: azure, alt: "azure"},
+    {src: github, alt: "github"},
+    {src: figma, alt: "figma"},
+    {src: colab, alt: "colab"},
+    {src: firebase, alt: "firebase"},
+    {src: vscode, alt: "vscode"},
+    {src: azure, alt: "azure"},
+    {src: github, alt: "github"},
+    {src: figma, alt: "figma"},
+    {src: colab, alt: "colab"},
+    {src: firebase, alt: "firebase"},
+    {src: vscode, alt: "vscode"},
+    {src: azure, alt: "azure"},
+    {src: github, alt: "github"},
+   
 ]
 
 
