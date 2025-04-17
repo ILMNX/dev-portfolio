@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjectById, updateProject, deleteProject } from '@/lib/db/projects'
 
-// Define the context type for route handlers with ID parameter
-type RouteContext = {
-  params: { id: string };
-};
-
 // API endpoint to get a specific project by ID
 export async function GET(
   _request: NextRequest,
-  context: RouteContext // Use the defined context type
+  { params }: { params: { id: string } } // Use inline type for context
 ) {
-  const { params } = context; // Destructure params from context
+  // params is directly available from destructuring
   try {
     const projectId = parseInt(params.id);
     
@@ -47,9 +42,9 @@ export async function GET(
 // API endpoint to update a project by ID
 export async function PUT(
   request: NextRequest,
-  context: RouteContext // Use the defined context type
+  { params }: { params: { id: string } } // Use inline type for context
 ) {
-  const { params } = context; // Destructure params from context
+  // params is directly available from destructuring
   try {
     const projectId = parseInt(params.id);
     
@@ -104,10 +99,10 @@ export async function PUT(
 
 // API endpoint to delete a project by ID
 export async function DELETE(
-  request: NextRequest,
-  context: RouteContext // Use the defined context type
+  _request: NextRequest, // Mark request as unused if applicable
+  { params }: { params: { id: string } } // Use inline type for context
 ) {
-  const { params } = context; // Destructure params from context
+  // params is directly available from destructuring
   try {
     const projectId = parseInt(params.id);
     
