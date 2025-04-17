@@ -1,12 +1,12 @@
-// Server component to properly unwrap params
 import { ProjectEditClient } from './client';
 
-// Correct page component definition for Next.js App Router
-export default function ProjectEditPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+// Define proper types for Next.js App Router params
+type PageProps = {
+  params: { id: string }
+  searchParams?: { [key: string]: string | string[] | undefined }
+}
+
+export default function ProjectEditPage({ params }: PageProps) {
   // Extract the id from params
   const { id } = params;
   
