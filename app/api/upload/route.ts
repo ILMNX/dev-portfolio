@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
     
     // Get file from form data
     const file = formData.get('file') as File;
-    const projectId = formData.get('projectId') as string;
     
     if (!file) {
       return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });

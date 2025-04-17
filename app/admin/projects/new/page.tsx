@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 // Project form component to create a new project
 const NewProject = () => {
@@ -374,7 +375,7 @@ const NewProject = () => {
                 <div className="relative h-48 border-2 border-dashed rounded-lg overflow-hidden border-gray-700 hover:border-gray-500 transition-colors">
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
-                      <img 
+                      <Image 
                         src={imagePreview || form.image} 
                         alt="Project thumbnail" 
                         className="w-full h-full object-cover"

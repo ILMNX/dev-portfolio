@@ -6,18 +6,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
-// Project type definition
-interface Project {
-  id?: number;
-  title: string;
-  year: number;
-  description: string;
-  details?: string;
-  languages: string[];
-  image: { src: string };
-  githubLink?: string;
-  liveLink?: string;
-}
 
 // Client component that receives id directly
 export function ProjectEditClient({ id }: { id: string }) {
@@ -445,7 +433,7 @@ export function ProjectEditClient({ id }: { id: string }) {
                 <div className="relative h-48 border-2 border-dashed rounded-lg overflow-hidden border-gray-700 hover:border-gray-500 transition-colors">
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
-                      <img 
+                      <Image 
                         src={imagePreview || form.image} 
                         alt="Project thumbnail" 
                         className="w-full h-full object-cover"

@@ -1,7 +1,7 @@
 import { turso } from './turso';
 
 // Project type definition for TypeScript
-export interface Project {
+interface Project {
   id?: number;
   title: string;
   year: number;
@@ -15,8 +15,23 @@ export interface Project {
   updated_at?: string;
 }
 
+// Define a type for the database row
+interface ProjectRow {
+  id: number;
+  title: string;
+  year: number;
+  description: string;
+  details: string | null;
+  languages: string; // This is JSON string in the database
+  image_url: string | null;
+  github_link: string | null;
+  live_link: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Convert database row to Project
-function rowToProject(row: any): Project {
+function rowToProject(row: ProjectRow): Project {
   return {
     id: row.id,
     title: row.title,
@@ -36,7 +51,7 @@ function rowToProject(row: any): Project {
 export async function getAllProjects(): Promise<Project[]> {
   try {
     const result = await turso.execute('SELECT * FROM projects ORDER BY year DESC');
-    return result.rows.map(rowToProject);
+    return result.rows.map((row) => rowToProject(row as unknown as ProjectRow));
   } catch (error) {
     console.error('Error getting projects:', error);
     return [];
@@ -55,7 +70,7 @@ export async function getProjectById(id: number): Promise<Project | null> {
       return null;
     }
     
-    return rowToProject(result.rows[0]);
+    return rowToProject(result.rows[0] as unknown as ProjectRow);
   } catch (error) {
     console.error(`Error getting project id ${id}:`, error);
     return null;
@@ -89,7 +104,7 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<Proje
       return null;
     }
     
-    return rowToProject(result.rows[0]);
+    return rowToProject(result.rows[0] as unknown as ProjectRow);
   } catch (error) {
     console.error('Error creating project:', error);
     return null;
@@ -147,7 +162,7 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
       return null;
     }
     
-    return rowToProject(result.rows[0]);
+    return rowToProject(result.rows[0] as unknown as ProjectRow);
   } catch (error) {
     console.error(`Error updating project id ${id}:`, error);
     return null;
