@@ -1,14 +1,10 @@
 import { ProjectEditClient } from './client';
 
-interface PageParams {
-  id: string;
-}
-
-// Using Next.js 14 async component pattern
-export default async function ProjectEditPage({
-  params,
-}: {
-  params: PageParams;
+// Using directly generated types from Next.js
+export default async function ProjectEditPage({ 
+  params 
+}: { 
+  params: { id: string } 
 }) {
   // Extract the id from params
   const { id } = params;
