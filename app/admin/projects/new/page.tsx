@@ -181,7 +181,7 @@ const NewProject = () => {
         },
         body: JSON.stringify({
           ...form,
-          image: imageUrl
+          image: { src: imageUrl } // Properly structure the image data for the API
         }),
       })
       

@@ -222,7 +222,10 @@ export function ProjectEditClient({ id }: { id: string }) {
     
     try {
       // First upload the image if there is one
-      const imageUrl = uploadedImage ? await uploadImage() : form.image
+      let imageUrl = form.image
+      if (uploadedImage) {
+        imageUrl = await uploadImage()
+      }
       
       // Update project using the API
       const response = await fetch(`/api/projects/${id}`, {
@@ -232,7 +235,7 @@ export function ProjectEditClient({ id }: { id: string }) {
         },
         body: JSON.stringify({
           ...form,
-          image: imageUrl // Use the uploaded image URL or existing one
+          image: { src: imageUrl } // Properly structure the image data for the API
         }),
       })
       
