@@ -1,14 +1,15 @@
 import { ProjectEditClient } from './client';
+import { JSX } from 'react';
 
-// Using directly generated types from Next.js
-export default async function ProjectEditPage({ 
-  params 
-}: { 
-  params: { id: string } 
-}) {
-  // Extract the id from params
-  const { id } = params;
+// Explicitly type params as a Promise based on the error message
+export default async function ProjectEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>; // Type params as a Promise
+}): Promise<JSX.Element> {
+  // Await the params promise to resolve it
+  const resolvedParams = await params;
+  const { id } = resolvedParams; // Destructure id from the resolved params
   
-  // Pass the extracted id to the client component
   return <ProjectEditClient id={id} />;
 }
