@@ -5,7 +5,7 @@ import { useMotionValue } from "framer-motion"
 import { animate } from "framer-motion"
 import { useMotionTemplate } from "framer-motion"
 import { motion } from "framer-motion"
-import { FiArrowRight } from "react-icons/fi"
+import { FiArrowRight, FiMail } from "react-icons/fi"
 
 
 
@@ -28,6 +28,13 @@ export const Hero = () => {
     const border = useMotionTemplate `1px solid ${color}`
     const boxShadow = useMotionTemplate `0px 4px 24px ${color}`
 
+    const scrollToContact = () => {
+        const contactSection = document.querySelector('#contact')
+        contactSection?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        })
+    }
 
     return(
         <motion.section
@@ -62,29 +69,45 @@ export const Hero = () => {
 
                 <p className="my-6 max-w-xl"> Fullstack Developer based in Bandar Lampung, With over 2 years of experience</p>
 
-                <motion.button
-                    onClick={() => window.open('https://www.canva.com/design/DAGhsbBQGPo/Cq0wE9ktnUkrnOQnH4F9KA/view?utm_content=DAGhsbBQGPo&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h6f3875e230', '_blank')}
-                    style={{
-                        border,
-                        boxShadow
-                    }}
-                    whileHover={
-                        {
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <motion.button
+                        onClick={() => window.open('https://www.canva.com/design/DAGhsbBQGPo/Cq0wE9ktnUkrnOQnH4F9KA/view?utm_content=DAGhsbBQGPo&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h6f3875e230', '_blank')}
+                        style={{
+                            border,
+                            boxShadow
+                        }}
+                        whileHover={{
                             scale: 1.05,
                             boxShadow: `0px 4px 24px ${color}`
-                        }
-                    }
-                    whileTap={
-                        {
+                        }}
+                        whileTap={{
                             scale: 0.985
-                        }
-                    }
-                    className="flex w-fit items-center gap-2 rounded-ful px-4 py-2"
-                >
-                    Download CV
-                <FiArrowRight className=""/>   
+                        }}
+                        className="flex w-fit items-center gap-2 rounded-full px-4 py-2"
+                    >
+                        Download CV
+                        <FiArrowRight className="ml-1"/>   
+                    </motion.button>
 
-                </motion.button>
+                    <motion.button
+                        onClick={scrollToContact}
+                        style={{
+                            border: useMotionTemplate `1px solid rgba(255,255,255,0.3)`,
+                            backgroundColor: 'rgba(255,255,255,0.1)'
+                        }}
+                        whileHover={{
+                            scale: 1.05,
+                            backgroundColor: 'rgba(255,255,255,0.2)'
+                        }}
+                        whileTap={{
+                            scale: 0.985
+                        }}
+                        className="flex w-fit items-center gap-2 rounded-full px-4 py-2"
+                    >
+                        Contact Me!
+                        <FiMail className="ml-1"/>   
+                    </motion.button>
+                </div>
 
             </div>
             <div className="bg-circle-container">

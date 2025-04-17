@@ -2,6 +2,8 @@
 
 import {motion} from "framer-motion"
 import { useEffect } from "react"
+import { FaWhatsapp, FaLinkedin } from "react-icons/fa"
+import { MdEmail } from "react-icons/md"
 
 export const Contact = () => {
     useEffect(() => {
@@ -47,27 +49,27 @@ export const Contact = () => {
                                    target="_blank" 
                                    className="text-xl sm:text-2xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2"
                                 >
+                                    <FaWhatsapp className="text-green-400 text-2xl sm:text-3xl" />
                                     +62 851 1080 6407
                                 </a>
-                                <span className="text-gray-500">⇗</span>
                             </div>
                             <div className="space-y-2">
                                 <p className="text-lg text-gray-300">Email</p>
                                 <a href="mailto:gilbertsibuea8539@gmail.com" 
                                    className="text-xl sm:text-2xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2"
                                 >
+                                    <MdEmail className="text-red-400 text-2xl sm:text-3xl" />
                                     gilbertsibuea8539@gmail.com
                                 </a>
-                                <span className="text-gray-500">⇗</span>
                             </div>
                             <div className="space-y-2">
                                 <p className="text-lg text-gray-300">LinkedIn</p>
                                 <a href="https://www.linkedin.com/in/gilbert-sibuea-93b524246/" 
                                    className="text-xl sm:text-2xl lg:text-4xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2"
                                 >
+                                    <FaLinkedin className="text-blue-400 text-2xl sm:text-3xl lg:text-4xl" />
                                     Gilbert Sibuea
                                 </a>
-                                <span className="text-gray-500">⇗</span>
                             </div>
                         </motion.div>
                     </div>
