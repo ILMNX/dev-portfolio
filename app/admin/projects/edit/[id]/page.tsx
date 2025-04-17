@@ -1,12 +1,15 @@
 import { ProjectEditClient } from './client';
 
-// Define proper types for Next.js App Router params
-type PageProps = {
-  params: { id: string }
-  searchParams?: { [key: string]: string | string[] | undefined }
+interface PageParams {
+  id: string;
 }
 
-export default function ProjectEditPage({ params }: PageProps) {
+// Using Next.js 14 async component pattern
+export default async function ProjectEditPage({
+  params,
+}: {
+  params: PageParams;
+}) {
   // Extract the id from params
   const { id } = params;
   
