@@ -6,7 +6,7 @@ import { initializeDatabase } from '@/lib/db'
 initializeDatabase();
 
 // API endpoint to get all projects
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const projects = await getAllProjects();
     return NextResponse.json({ 

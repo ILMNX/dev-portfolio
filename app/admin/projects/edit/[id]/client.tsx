@@ -32,18 +32,6 @@ export function ProjectEditClient({ id }: { id: string }) {
     image: '/proj1.png' // Default image path
   })
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const adminAuth = localStorage.getItem('adminAuth')
-    if (!adminAuth) {
-      router.push('/admin')
-      return
-    }
-    
-    // Get the project data to edit
-    fetchProject()
-  }, [id, router])
-
   const fetchProject = async () => {
     try {
       if (!id || isNaN(parseInt(id))) {
@@ -79,6 +67,18 @@ export function ProjectEditClient({ id }: { id: string }) {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const adminAuth = localStorage.getItem('adminAuth')
+    if (!adminAuth) {
+      router.push('/admin')
+      return
+    }
+    
+    // Get the project data to edit
+    fetchProject()
+  }, [id, router, fetchProject])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -259,7 +259,7 @@ export function ProjectEditClient({ id }: { id: string }) {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="max-w-md text-center">
           <h1 className="text-3xl font-bold mb-4">Project Not Found</h1>
-          <p className="text-gray-400 mb-6">The project you're looking for doesn't exist or has been deleted.</p>
+          <p className="text-gray-400 mb-6">The project you&apos;re looking for doesn&apos;t exist or has been deleted.</p>
           <Link
             href="/admin/projects"
             className="px-6 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors inline-block"
