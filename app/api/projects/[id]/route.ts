@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjectById, updateProject, deleteProject } from '@/lib/db/projects'
 
-// Define the context type for route handlers
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
 // API endpoint to get a specific project by ID
 export async function GET(
   request: NextRequest,
-  context: RouteContext // Use the defined context type
+  { params }: { params: { id: string } } // Standard signature with destructuring
 ) {
-  const { id } = context.params; // Access id from context.params
+  const { id } = params; // id is available from destructuring
   try {
     const projectId = parseInt(id);
     
@@ -49,9 +42,9 @@ export async function GET(
 // API endpoint to update a project by ID
 export async function PUT(
   request: NextRequest,
-  context: RouteContext // Use the defined context type
+  { params }: { params: { id: string } } // Standard signature with destructuring
 ) {
-  const { id } = context.params; // Access id from context.params
+  const { id } = params; // id is available from destructuring
   try {
     const projectId = parseInt(id);
     
@@ -108,9 +101,9 @@ export async function PUT(
 // API endpoint to delete a project by ID
 export async function DELETE(
   request: NextRequest,
-  context: RouteContext // Use the defined context type
+  { params }: { params: { id: string } } // Standard signature with destructuring
 ) {
-  const { id } = context.params; // Access id from context.params
+  const { id } = params; // id is available from destructuring
   try {
     const projectId = parseInt(id);
     
