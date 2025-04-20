@@ -6,26 +6,27 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
-    const projectId = parseInt(params.id);
-    
+    const projectId = parseInt(id);
+
     if (isNaN(projectId)) {
       return NextResponse.json(
         { success: false, error: 'Invalid project ID' },
         { status: 400 }
       );
     }
-    
+
     const project = await getProjectById(projectId);
-    
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: 'Project not found' },
         { status: 404 }
       );
     }
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       success: true,
       project
     });
@@ -43,18 +44,19 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
-    const projectId = parseInt(params.id);
-    
+    const projectId = parseInt(id);
+
     if (isNaN(projectId)) {
       return NextResponse.json(
         { success: false, error: 'Invalid project ID' },
         { status: 400 }
       );
     }
-    
+
     const data = await request.json();
-    
+
     // Validate required fields
     if (!data.title || !data.description || !data.year || !data.languages) {
       return NextResponse.json(
@@ -62,7 +64,7 @@ export async function PUT(
         { status: 400 }
       );
     }
-    
+
     const updatedProject = await updateProject(projectId, {
       title: data.title,
       year: parseInt(data.year),
@@ -73,16 +75,16 @@ export async function PUT(
       githubLink: data.githubLink || '',
       liveLink: data.liveLink || ''
     });
-    
+
     if (!updatedProject) {
       return NextResponse.json(
         { success: false, error: 'Project not found' },
         { status: 404 }
       );
     }
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: `Project updated successfully`,
       project: updatedProject
     });
@@ -100,28 +102,29 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
-    const projectId = parseInt(params.id);
-    
+    const projectId = parseInt(id);
+
     if (isNaN(projectId)) {
       return NextResponse.json(
         { success: false, error: 'Invalid project ID' },
         { status: 400 }
       );
     }
-    
+
     const success = await deleteProject(projectId);
-    
+
     if (!success) {
       return NextResponse.json(
         { success: false, error: 'Failed to delete project or project not found' },
         { status: 500 }
       );
     }
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: `Project deleted successfully` 
+
+    return NextResponse.json({
+      success: true,
+      message: `Project deleted successfully`
     });
   } catch (error) {
     console.error('Error deleting project:', error);
