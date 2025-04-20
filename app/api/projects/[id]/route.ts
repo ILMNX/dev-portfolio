@@ -4,11 +4,10 @@ import { getProjectById, updateProject, deleteProject } from '@/lib/db/projects'
 // API endpoint to get a specific project by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } } // Standard signature with destructuring
+  { params }: { params: { id: string } }
 ) {
-  const { id } = params; // id is available from destructuring
   try {
-    const projectId = parseInt(id);
+    const projectId = parseInt(params.id);
     
     if (isNaN(projectId)) {
       return NextResponse.json(
@@ -42,11 +41,10 @@ export async function GET(
 // API endpoint to update a project by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } } // Standard signature with destructuring
+  { params }: { params: { id: string } }
 ) {
-  const { id } = params; // id is available from destructuring
   try {
-    const projectId = parseInt(id);
+    const projectId = parseInt(params.id);
     
     if (isNaN(projectId)) {
       return NextResponse.json(
@@ -71,7 +69,6 @@ export async function PUT(
       description: data.description,
       details: data.details || '',
       languages: data.languages,
-      // Ensure image handling is correct based on updateProject expectation
       image: typeof data.image === 'string' ? { src: data.image } : data.image,
       githubLink: data.githubLink || '',
       liveLink: data.liveLink || ''
@@ -101,11 +98,10 @@ export async function PUT(
 // API endpoint to delete a project by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } } // Standard signature with destructuring
+  { params }: { params: { id: string } }
 ) {
-  const { id } = params; // id is available from destructuring
   try {
-    const projectId = parseInt(id);
+    const projectId = parseInt(params.id);
     
     if (isNaN(projectId)) {
       return NextResponse.json(
@@ -117,10 +113,9 @@ export async function DELETE(
     const success = await deleteProject(projectId);
     
     if (!success) {
-      // Consider checking if the project existed first for a 404
       return NextResponse.json(
         { success: false, error: 'Failed to delete project or project not found' },
-        { status: 500 } // Or 404 if known not found
+        { status: 500 }
       );
     }
     
