@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, use } from 'react';
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -86,7 +86,8 @@ const getValidImageSrc = (project: Project | null): string => {
   }
 };
 
-const ProjectDetail = ({ params }: { params: { id: string } }) => {
+const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
+    const params = use(props.params);
     const [project, setProject] = useState<Project | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
