@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 // Helper function to validate image URL
-const getValidImageUrl = (url: any): string => {
+const getValidImageUrl = (url: string | URL | undefined | null): string => {
   // Default fallback image
   const fallbackImage = '/proj1.png';
   

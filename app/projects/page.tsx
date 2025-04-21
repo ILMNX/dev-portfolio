@@ -1,5 +1,4 @@
 import React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Footer } from '@/components/Footer'
 import ProjectsList from './ProjectsList' // This is now correctly importing from the same directory
