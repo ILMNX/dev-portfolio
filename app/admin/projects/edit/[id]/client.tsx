@@ -6,6 +6,35 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
+// Helper function to validate image URL
+const getValidImageUrl = (url: any): string => {
+  // Default fallback image
+  const fallbackImage = '/proj1.png';
+  
+  // If it's already a URL object from createObjectURL
+  if (url instanceof URL) {
+    return url.toString();
+  }
+  
+  // If it's empty or not a string
+  if (!url || typeof url !== 'string') {
+    console.log('Invalid image source:', url);
+    return fallbackImage;
+  }
+  
+  // If it's a relative path, ensure it starts with /
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return '/' + url;
+  }
+  
+  // Handle blob URLs
+  if (url.startsWith('blob:')) {
+    return url;
+  }
+  
+  // For normal URLs and properly formatted relative paths
+  return url;
+}
 
 // Client component that receives id directly
 export function ProjectEditClient({ id }: { id: string }) {
@@ -434,9 +463,11 @@ export function ProjectEditClient({ id }: { id: string }) {
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
                       <Image 
-                        src={imagePreview || form.image} 
+                        src={getValidImageUrl(imagePreview || form.image)} 
                         alt="Project thumbnail" 
                         className="w-full h-full object-cover"
+                        width={600}
+                        height={400}
                       />
                       {isUploading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">

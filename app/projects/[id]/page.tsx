@@ -1,57 +1,154 @@
 'use client'
 
-import React, { useState, use } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import proj1 from '@/public/project1.png'
-import proj2 from '@/public/project2.png'
-import proj3 from '@/public/proj3.png'
 import { Footer } from '@/components/Footer'
 
-const projects = [
-    {
-        id: 1,
-        year: 2024,
-        title: "E-Retirement",
-        description: "E-retirement is platform created to manage retirement funds",
-        image: proj1,
-        languages: ["React", "Node.js", "MongoDB"],
-        details: "A comprehensive retirement fund management platform that helps users track and manage their retirement savings, investments, and benefits.",
-        githubLink: "#",
-        liveLink: "#"
-    },
-    {
-        id: 2,
-        year: 2024,
-        title: "ChatGPT Table Maker",
-        description: "ChatGPT Table Maker is a tool that allows you to copy table in ChatGPT and paste it in word or excel table format",
-        image: proj2,
-        languages: ["JavaScript", "HTML", "CSS"],
-        details: "A utility tool that converts ChatGPT table outputs into formatted tables compatible with Microsoft Word and Excel.",
-        githubLink: "#",
-        liveLink: "#"
-    },
-    {
-        id: 3,
-        year: 2024,
-        title: "Plant data extraction",
-        description: "Plant data extraction is a tool that allows you to extract data from plant pdf using python",
-        image: proj3,
-        languages: ["Python", "PyPDF2", "Pandas"],
-        details: "An automated tool that extracts and processes plant-related data from PDF documents using Python's data processing capabilities.",
-        githubLink: "#",
-        liveLink: "#"
-    }
-]
+// Define the Project type
+interface Project {
+  id: number
+  year: number
+  title: string
+  description: string
+  image: { src: string } | string | null | undefined
+  languages: string[]
+  details: string
+  githubLink: string
+  liveLink: string
+}
 
-const ProjectDetail = ({ params }: { params: Promise<{ id: string }> }) => {
-    const resolvedParams = use(params)
-    const project = projects.find(p => p.id === parseInt(resolvedParams.id))
+// Helper function to ensure valid image URLs
+const getValidImageSrc = (project: Project | null): string => {
+  // Default fallback image - always use absolute path
+  const fallbackImage = '/proj1.png';
+  
+  try {
+    // Safety check for missing project
+    if (!project) {
+      console.log('Missing project data');
+      return fallbackImage;
+    }
+
+    // Log actual image data for debugging
+    console.log('Image data type:', typeof project.image, 'Value:', project.image);
+    
+    // Case 1: No image data
+    if (!project.image) {
+      return fallbackImage;
+    }
+    
+    // Case 2: Image is a string (direct path)
+    if (typeof project.image === 'string') {
+      // Ensure the string is not empty
+      if (!project.image.trim()) {
+        return fallbackImage;
+      }
+      
+      // Handle relative paths - ensure they start with '/'
+      // Using explicit type guard to avoid 'never' type issue
+      const imgPath: string = project.image;
+      if (!imgPath.startsWith('/') && !imgPath.startsWith('http')) {
+        return '/' + imgPath;
+      }
+      
+      return imgPath;
+    }
+    
+    // Case 3: Image is an object with src property
+    if (typeof project.image === 'object' && project.image !== null) {
+      // Access the src property safely
+      const src = project.image.src;
+      
+      // Ensure src exists and is a string
+      if (!src || typeof src !== 'string') {
+        console.log('Invalid src property:', src);
+        return fallbackImage;
+      }
+      
+      // Handle relative paths - ensure they start with '/'
+      // Using explicit typing to avoid 'never' type issue
+      const imgSrc: string = src;
+      if (!imgSrc.startsWith('/') && !imgSrc.startsWith('http')) {
+        return '/' + imgSrc;
+      }
+      
+      return imgSrc;
+    }
+    
+    // Case 4: Unexpected image format
+    console.log('Unexpected image format:', project.image);
+    return fallbackImage;
+  } catch (error) {
+    console.error('Error processing image source:', error);
+    return fallbackImage;
+  }
+};
+
+const ProjectDetail = ({ params }: { params: { id: string } }) => {
+    const [project, setProject] = useState<Project | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [currentImage, setCurrentImage] = useState(0)
     const [direction, setDirection] = useState(0)
 
-    if (!project) return <div>Project not found</div>
+    useEffect(() => {
+        const fetchProject = async () => {
+            try {
+                console.log(`Fetching project with ID: ${params.id}...`)
+                // Fix: Use absolute URL with proper origin
+                const baseUrl = window.location.origin;
+                const res = await fetch(`${baseUrl}/api/projects/${params.id}`)
+                const data = await res.json()
+                
+                if (data.success) {
+                    console.log('Successfully fetched project:', data.project.title)
+                    setProject(data.project)
+                } else {
+                    console.error('Failed to fetch project:', data.error)
+                    setError(data.error || 'Failed to load project')
+                }
+            } catch (error) {
+                console.error('Error fetching project:', error)
+                setError('An unexpected error occurred')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchProject()
+    }, [params.id])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black text-white py-20 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading project...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error || !project) {
+        return (
+            <div className="min-h-screen bg-black text-white py-20">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <div className="mb-8">
+                        <Link 
+                            href="/projects"
+                            className="inline-flex items-center text-violet-500 hover:text-violet-400"
+                        >
+                            ← Back to Projects
+                        </Link>
+                    </div>
+                    <h2 className="text-2xl font-bold text-red-500 mb-4">Error</h2>
+                    <p className="text-gray-400">{error || 'Project not found'}</p>
+                </div>
+            </div>
+        )
+    }
 
     const slideVariants = {
         enter: (direction: number) => ({
@@ -128,7 +225,7 @@ const ProjectDetail = ({ params }: { params: Promise<{ id: string }> }) => {
                                 className="absolute w-full h-full"
                             >
                                 <Image
-                                    src={project.image.src}
+                                    src={getValidImageSrc(project)}
                                     alt={project.title}
                                     fill
                                     className="object-cover rounded-xl"
@@ -199,4 +296,4 @@ const ProjectDetail = ({ params }: { params: Promise<{ id: string }> }) => {
     )
 }
 
-export default ProjectDetail 
+export default ProjectDetail

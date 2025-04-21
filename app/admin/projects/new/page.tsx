@@ -379,6 +379,8 @@ const NewProject = () => {
                         src={imagePreview || form.image} 
                         alt="Project thumbnail" 
                         className="w-full h-full object-cover"
+                        width={800}
+                        height={450}
                       />
                       {isUploading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">

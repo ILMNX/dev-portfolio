@@ -163,7 +163,9 @@ const AdminProjects = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 relative">
                             <Image 
-                              src={project?.image?.src || "/proj1.png"} 
+                              src={typeof project?.image?.src === 'string' && project.image.src.startsWith('/') 
+                                ? project.image.src 
+                                : '/proj1.png'} 
                               alt={project?.title || "Project thumbnail"}
                               width={40}
                               height={40}

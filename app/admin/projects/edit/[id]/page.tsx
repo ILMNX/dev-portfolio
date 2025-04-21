@@ -1,15 +1,13 @@
 import { ProjectEditClient } from './client';
 import { JSX } from 'react';
 
-// Explicitly type params as a Promise based on the error message
+// Correct pattern for Next.js 15+ Server Components
 export default async function ProjectEditPage({
   params,
 }: {
-  params: Promise<{ id: string }>; // Type params as a Promise
+  params: { id: string }; // Params are directly available, not a Promise
 }): Promise<JSX.Element> {
-  // Await the params promise to resolve it
-  const resolvedParams = await params;
-  const { id } = resolvedParams; // Destructure id from the resolved params
+  const { id } = params; // Destructure id directly from params
   
   return <ProjectEditClient id={id} />;
 }

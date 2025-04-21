@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjectById, updateProject, deleteProject } from '@/lib/db/projects'
 
-// Use 'any' for context to bypass Next.js 15 type bug
-export async function GET(request: NextRequest, context: unknown) {
-  const { id } = (context as { params: { id: string } }).params;
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id;
   try {
     const projectId = parseInt(id);
     if (isNaN(projectId)) {
@@ -20,8 +19,8 @@ export async function GET(request: NextRequest, context: unknown) {
   }
 }
 
-export async function PUT(request: NextRequest, context: unknown) {
-  const { id } = (context as { params: { id: string } }).params;
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id;
   try {
     const projectId = parseInt(id);
     if (isNaN(projectId)) {
@@ -51,8 +50,8 @@ export async function PUT(request: NextRequest, context: unknown) {
   }
 }
 
-export async function DELETE(request: NextRequest, context: unknown) {
-  const { id } = (context as { params: { id: string } }).params;
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id;
   try {
     const projectId = parseInt(id);
     if (isNaN(projectId)) {

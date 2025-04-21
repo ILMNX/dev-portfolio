@@ -3,21 +3,54 @@
 import React, { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import proj1 from "@/public/project1.png"
-import proj2 from "@/public/project2.png"
-import proj3 from "@/public/proj3.png"
 import { useMotionTemplate, useMotionValue, motion, animate, AnimatePresence } from "framer-motion"
 
-const projects = [
-    {id:1, year: 2024, title: "E-Retirement", description: "E-retirement is platform created to manage retirement funds", image: proj1},
-    {id:2, year: 2024, title: "ChatGPT Table Maker", description: "ChatGPT Table Maker is a tool that allows you to copy table in ChatGPT and paste it in word or excel table format", image: proj2}, 
-    {id:3, year: 2024, title: "Plant data extraction", description: "Plant data extraction is a tool that allows you to extract data from plant pdf using python", image: proj3}
-]
+// Project type definition
+interface Project {
+    id: number
+    year: number
+    title: string
+    description: string
+    image: { src: string }
+    languages: string[]
+    details?: string
+    githubLink?: string
+    liveLink?: string
+}
 
 export const Portfolio = () => {
-    const [selectedProject, setSelectedProject] = useState(projects[0])
+    const [projects, setProjects] = useState<Project[]>([])
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+    const [loading, setLoading] = useState(true)
     const [direction, setDirection] = useState(0) // -1 for left, 1 for right
     const carouselRef = useRef(null)
+    
+    // Fetch projects from the API
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                console.log('Portfolio component: Fetching projects from API...')
+                // Fix: Use absolute URL with proper origin
+                const baseUrl = window.location.origin;
+                const res = await fetch(`${baseUrl}/api/projects`)
+                const data = await res.json()
+                
+                if (data.success && data.projects?.length > 0) {
+                    console.log('Portfolio component: Successfully fetched projects:', data.projects.length)
+                    setProjects(data.projects)
+                    setSelectedProject(data.projects[0])
+                } else {
+                    console.error('Portfolio component: Failed to fetch projects or no projects found:', data)
+                }
+            } catch (error) {
+                console.error('Portfolio component: Error fetching projects:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        
+        fetchProjects()
+    }, [])
     
     // Vibrant color palette based on the image (purple, pink, blue, green)
     const colorPalette = {
@@ -43,16 +76,20 @@ export const Portfolio = () => {
     const gradientAngle = useMotionValue(130)
 
     const handlePrevProject = () => {
+        if (!selectedProject || projects.length <= 1) return
+        
         setDirection(-1)
-        const newIndex = selectedProject.id - 2 < 0 
-            ? projects.length - 1 
-            : selectedProject.id - 2
+        const currentIndex = projects.findIndex(p => p.id === selectedProject.id)
+        const newIndex = currentIndex <= 0 ? projects.length - 1 : currentIndex - 1
         setSelectedProject(projects[newIndex])
     }
 
     const handleNextProject = () => {
+        if (!selectedProject || projects.length <= 1) return
+        
         setDirection(1)
-        const newIndex = selectedProject.id % projects.length
+        const currentIndex = projects.findIndex(p => p.id === selectedProject.id)
+        const newIndex = (currentIndex + 1) % projects.length
         setSelectedProject(projects[newIndex])
     }
 
@@ -132,6 +169,74 @@ export const Portfolio = () => {
         })
     }, [])
 
+    // Helper function to ensure valid image URLs
+    const getValidImageSrc = (project: Project | null): string => {
+        // Default fallback image - always use absolute path
+        const fallbackImage = '/proj1.png';
+        
+        try {
+            // Safety check for missing project
+            if (!project) {
+                console.log('Missing project data');
+                return fallbackImage;
+            }
+
+            // Log actual image data for debugging
+            console.log('Image data type:', typeof project.image, 'Value:', project.image);
+            
+            // Case 1: No image data
+            if (!project.image) {
+                return fallbackImage;
+            }
+            
+            // Case 2: Image is a string (direct path)
+            if (typeof project.image === 'string') {
+                // Ensure the string is not empty
+                const imageStr = project.image as string;
+                if (!imageStr.trim()) {
+                    return fallbackImage;
+                }
+                
+                // Handle relative paths - ensure they start with '/'
+                // Using explicit type guard to avoid 'never' type issue
+                const imgPath: string = imageStr;
+                if (!imgPath.startsWith('/') && !imgPath.startsWith('http')) {
+                    return '/' + imgPath;
+                }
+                
+                return imgPath;
+            }
+            
+            // Case 3: Image is an object with src property
+            if (typeof project.image === 'object' && project.image !== null) {
+                // Access the src property safely
+                const src = project.image.src;
+                
+                // Ensure src exists and is a string
+                if (!src || typeof src !== 'string') {
+                    console.log('Invalid src property:', src);
+                    return fallbackImage;
+                }
+                
+                // Handle relative paths - ensure they start with '/'
+                // Using explicit typing to avoid 'never' type issue
+                const imgSrc: string = src;
+                if (!imgSrc.startsWith('/') && !imgSrc.startsWith('http')) {
+                    return '/' + imgSrc;
+                }
+                
+                return imgSrc;
+            }
+            
+            // Case 4: Unexpected image format
+            console.log('Unexpected image format:', project.image);
+            return fallbackImage;
+        } catch (error) {
+            console.error('Error processing image source:', error);
+            return fallbackImage;
+        }
+    };
+
     // Vibrant breathing gradient based on the image
     const backgroundImage = useMotionTemplate`
         linear-gradient(
@@ -176,6 +281,32 @@ export const Portfolio = () => {
                 duration: 0.5
             }
         })
+    }
+
+    // Show loading spinner if loading or no projects
+    if (loading) {
+        return (
+            <section id="portfolio" className="py-32 bg-black text-white">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <h2 className="text-6xl font-bold mb-10">Selected <span className="text-gray-200">Projects</span></h2>
+                    <div className="flex justify-center items-center py-16">
+                        <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                </div>
+            </section>
+        )
+    }
+
+    // Handle no projects found
+    if (projects.length === 0 || !selectedProject) {
+        return (
+            <section id="portfolio" className="py-32 bg-black text-white">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <h2 className="text-6xl font-bold mb-10">Selected <span className="text-gray-200">Projects</span></h2>
+                    <p className="text-gray-400 text-xl py-16">No projects found. Check back later!</p>
+                </div>
+            </section>
+        )
     }
 
     return(
@@ -258,7 +389,7 @@ export const Portfolio = () => {
                             >
                                 <div className="relative overflow-hidden rounded-xl group">
                                     <Image
-                                        src={selectedProject.image.src}
+                                        src={getValidImageSrc(selectedProject)}
                                         alt={selectedProject.title}
                                         className="object-cover w-full h-auto rounded-xl shadow-lg transition-all duration-500"
                                         width={1000}
@@ -269,6 +400,15 @@ export const Portfolio = () => {
                                         <div className="p-6 text-white w-full">
                                             <h3 className="text-2xl font-bold">{selectedProject.title}</h3>
                                             <p className="mt-2">{selectedProject.description}</p>
+                                            {selectedProject.languages && (
+                                                <div className="flex flex-wrap gap-2 mt-3">
+                                                    {selectedProject.languages.map((lang, idx) => (
+                                                        <span key={idx} className="px-2 py-1 bg-violet-500/20 text-violet-300 rounded-full text-xs">
+                                                            {lang}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

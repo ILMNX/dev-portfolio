@@ -1,51 +1,36 @@
-'use client'
-
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import proj1 from '@/public/project1.png'
-import proj2 from '@/public/project2.png'
-import proj3 from '@/public/proj3.png'
 import { Footer } from '@/components/Footer'
+import ProjectsList from './ProjectsList' // This is now correctly importing from the same directory
 
-const projects = [
-    {
-        id: 1,
-        year: 2024,
-        title: "E-Retirement",
-        description: "E-retirement is platform created to manage retirement funds",
-        image: proj1,
-        languages: ["React", "Node.js", "MongoDB"],
-        details: "A comprehensive retirement fund management platform that helps users track and manage their retirement savings, investments, and benefits.",
-        githubLink: "#",
-        liveLink: "#"
-    },
-    {
-        id: 2,
-        year: 2024,
-        title: "ChatGPT Table Maker",
-        description: "ChatGPT Table Maker is a tool that allows you to copy table in ChatGPT and paste it in word or excel table format",
-        image: proj2,
-        languages: ["JavaScript", "HTML", "CSS"],
-        details: "A utility tool that converts ChatGPT table outputs into formatted tables compatible with Microsoft Word and Excel.",
-        githubLink: "#",
-        liveLink: "#"
-    },
-    {
-        id: 3,
-        year: 2024,
-        title: "Plant data extraction",
-        description: "Plant data extraction is a tool that allows you to extract data from plant pdf using python",
-        image: proj3,
-        languages: ["Python", "PyPDF2", "Pandas"],
-        details: "An automated tool that extracts and processes plant-related data from PDF documents using Python's data processing capabilities.",
-        githubLink: "#",
-        liveLink: "#"
+// Fetch projects from the API (server-side)
+async function getProjects() {
+    try {
+        console.log('Fetching projects from API...')
+        // Fix: Use absolute URL with proper origin
+        const baseUrl = process.env.VERCEL_URL 
+            ? `https://${process.env.VERCEL_URL}` 
+            : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+            
+        const res = await fetch(`${baseUrl}/api/projects`, {
+            cache: 'no-store',
+        })
+        const data = await res.json()
+        if (data.success) {
+            console.log('Successfully fetched projects:', data.projects.length)
+            return data.projects
+        }
+        console.error('Failed to fetch projects:', data)
+        return []
+    } catch (error) {
+        console.error('Error fetching projects:', error)
+        return []
     }
-]
+}
 
-const ProjectsPage = () => {
+const ProjectsPage = async () => {
+    const projects = await getProjects()
     return (
         <>
             <div className="min-h-screen bg-black text-white py-20">
@@ -59,47 +44,13 @@ const ProjectsPage = () => {
 
                     <h1 className="text-6xl font-bold mb-16 text-center">My <span className="text-gray-500">Projects</span></h1>
                     
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {projects.map((project, index) => (
-                            <Link href={`/projects/${project.id}`} key={project.id}>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                    whileHover={{ scale: 1.05 }}
-                                    className="bg-gray-900 rounded-xl overflow-hidden group"
-                                >
-                                    <div className="relative h-48 overflow-hidden">
-                                        <Image
-                                            src={project.image.src}
-                                            alt={project.title}
-                                            fill
-                                            className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                        />
-                                    </div>
-                                    <div className="p-6">
-                                        <p className="text-gray-400 text-sm mb-2">{project.year}</p>
-                                        <h2 className="text-2xl font-bold mb-3 group-hover:text-violet-500 transition-colors">
-                                            {project.title}
-                                        </h2>
-                                        <p className="text-gray-400 mb-4 line-clamp-2">
-                                            {project.description}
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {project.languages.map((lang, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className="px-3 py-1 bg-violet-500/20 text-violet-400 rounded-full text-sm"
-                                                >
-                                                    {lang}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </Link>
-                        ))}
-                    </div>
+                    {projects.length === 0 ? (
+                        <div className="text-center py-12 text-gray-400">
+                            <p>No projects found. Add some projects to showcase your work!</p>
+                        </div>
+                    ) : (
+                        <ProjectsList projects={projects} />
+                    )}
                 </div>
             </div>
             <Footer />
@@ -107,4 +58,4 @@ const ProjectsPage = () => {
     )
 }
 
-export default ProjectsPage 
+export default ProjectsPage
