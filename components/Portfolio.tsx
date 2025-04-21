@@ -362,9 +362,9 @@ export const Portfolio = () => {
                                     boxShadow: "0 0 20px rgba(139, 92, 246, 0.5)",
                                 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="mt-8 px-8 py-3 bg-gradient-to-r from-violet-500 via-violet-600 to-violet-500 
+                                className="mt-8 px-10 py-4 bg-gradient-to-r from-violet-500 via-violet-600 to-violet-500 
                                         text-white rounded-lg font-semibold relative overflow-hidden group
-                                        transition-all duration-300 ease-out"
+                                        transition-all duration-300 ease-out text-lg w-auto min-w-[220px]"
                             >
                                 <span className="relative z-10">View All Projects</span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-violet-600 
