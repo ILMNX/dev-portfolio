@@ -52,7 +52,7 @@ const AdminLogin = () => {
         className="max-w-md w-full p-8 bg-gray-900 rounded-xl shadow-2xl"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin <span className="text-violet-500">Login</span></h1>
+          <h1 className="text-4xl font-bold mb-2">Dev <span className="text-violet-500">Login</span></h1>
           <p className="text-gray-400">Enter your credentials to access the admin dashboard</p>
         </div>
 

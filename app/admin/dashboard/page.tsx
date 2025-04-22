@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [projectCount, setProjectCount] = useState<number | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -20,6 +21,22 @@ const AdminDashboard = () => {
     }
     setIsAuthenticated(true)
     setIsLoading(false)
+
+    // Fetch project count from API
+    const fetchProjectCount = async () => {
+      try {
+        const res = await fetch('/api/projects', { cache: 'no-store' })
+        const data = await res.json()
+        if (data.success && Array.isArray(data.projects)) {
+          setProjectCount(data.projects.length)
+        } else {
+          setProjectCount(0)
+        }
+      } catch {
+        setProjectCount(0)
+      }
+    }
+    fetchProjectCount()
   }, [router])
 
   const handleLogout = () => {
@@ -72,7 +89,9 @@ const AdminDashboard = () => {
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Projects</h2>
-              <span className="text-2xl font-bold text-violet-500">3</span>
+              <span className="text-2xl font-bold text-violet-500">
+                {projectCount !== null ? projectCount : '...'}
+              </span>
             </div>
             <p className="text-gray-400 mb-4">Manage your portfolio projects</p>
             <Link 
