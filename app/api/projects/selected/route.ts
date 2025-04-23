@@ -46,8 +46,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Define interface for selected project
+    interface SelectedProject {
+      id: number;
+      [key: string]: unknown; // For any other properties that might be present
+    }
+    
     // Limit to maximum 3 selected projects
-    const selectedProjects = data.selectedProjects.slice(0, 3).map((project: any, index: number) => ({
+    const selectedProjects = data.selectedProjects.slice(0, 3).map((project: SelectedProject, index: number) => ({
       id: project.id,
       order: index + 1
     }));
