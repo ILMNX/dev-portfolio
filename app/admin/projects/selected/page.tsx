@@ -1,0 +1,318 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+// Project type definition
+interface Project {
+  id: number;
+  title: string;
+  year: number;
+  description: string;
+  image: { src: string };
+  languages: string[];
+  selected?: number;
+  selectedOrder?: number;
+}
+
+// Helper function to ensure valid image paths
+const getValidImagePath = (image: { src: string } | string): string => {
+  // For debugging
+  console.log('Processing image in selected projects page:', image);
+  
+  // Handle image object with src property
+  if (typeof image === 'object' && image !== null && 'src' in image) {
+    const src = image.src;
+    console.log('Image src from object:', src);
+    if (!src) return '/proj1.png';
+    
+    // Ensure upload paths have leading slash
+    if (src.includes('uploads/')) {
+      const result = src.startsWith('/') ? src : '/' + src;
+      console.log('Fixed upload path:', result);
+      return result;
+    }
+    
+    // If it's a full URL or already has a leading slash, return as is
+    if (src.startsWith('http') || src.startsWith('/')) {
+      return src;
+    }
+    
+    // Otherwise, add a leading slash
+    return '/' + src;
+  }
+  
+  // Handle direct string path
+  if (typeof image === 'string') {
+    const src = image;
+    console.log('Image string path:', src);
+    if (!src) return '/proj1.png';
+    
+    if (src.startsWith('http') || src.startsWith('/')) {
+      return src;
+    }
+    
+    return '/' + src;
+  }
+  
+  // Fallback
+  return '/proj1.png';
+};
+
+export default function SelectedProjectsPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
+  
+  const router = useRouter();
+
+  // Check authentication and load projects
+  useEffect(() => {
+    // Check if user is authenticated
+    const adminAuth = localStorage.getItem('adminAuth');
+    if (!adminAuth) {
+      router.push('/admin');
+      return;
+    }
+    
+    setIsAuthenticated(true);
+    
+    // Fetch all projects
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch('/api/projects', { cache: 'no-store' });
+        const data = await res.json();
+        
+        if (data.success && Array.isArray(data.projects)) {
+          setAllProjects(data.projects);
+          
+          // Filter out already selected projects
+          const selected = data.projects.filter((p: Project) => p.selected === 1)
+            .sort((a: Project, b: Project) => (a.selectedOrder || 0) - (b.selectedOrder || 0));
+          
+          setSelectedProjects(selected.slice(0, 3));
+        }
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProjects();
+  }, [router]);
+
+  // Add a project to the selected list
+  const addProject = (project: Project) => {
+    if (selectedProjects.length >= 3) {
+      setSaveMessage({ type: 'error', text: 'Maximum 3 projects can be selected' });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+    
+    // Check if project is already selected
+    if (selectedProjects.some(p => p.id === project.id)) {
+      setSaveMessage({ type: 'error', text: 'Project already selected' });
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+    
+    setSelectedProjects(prevProjects => [...prevProjects, project]);
+  };
+
+  // Remove a project from the selected list
+  const removeProject = (index: number) => {
+    setSelectedProjects(prevProjects => prevProjects.filter((_, i) => i !== index));
+  };
+
+  // Save selected projects to the database
+  const saveSelectedProjects = async () => {
+    setIsSaving(true);
+    setSaveMessage(null);
+    
+    try {
+      const projectsToSave = selectedProjects.map((project, index) => ({
+        id: project.id,
+        order: index + 1
+      }));
+      
+      const res = await fetch('/api/projects/selected', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ selectedProjects: projectsToSave }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setSaveMessage({ type: 'success', text: 'Selected projects saved successfully' });
+      } else {
+        setSaveMessage({ type: 'error', text: data.error || 'Error saving selected projects' });
+      }
+    } catch (error) {
+      console.error('Error saving selected projects:', error);
+      setSaveMessage({ type: 'error', text: 'Error saving selected projects' });
+    } finally {
+      setIsSaving(false);
+      // Clear message after 3 seconds
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-2xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // This should never render as the useEffect will redirect
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <header className="bg-gray-900 border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link href="/admin/dashboard" className="text-gray-400 hover:text-white transition-colors">
+              ← Dashboard
+            </Link>
+            <h1 className="text-2xl font-bold">Selected <span className="text-violet-500">Projects</span></h1>
+          </div>
+          
+          <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+            View Site
+          </Link>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Featured Projects</h2>
+            <button 
+              onClick={saveSelectedProjects} 
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+          
+          {saveMessage && (
+            <div className={`mb-4 p-4 rounded-lg ${saveMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+              {saveMessage.text}
+            </div>
+          )}
+
+          <div className="bg-gray-900 p-4 rounded-xl mb-6">
+            <p className="text-gray-400 mb-2">
+              Select up to 3 projects to feature in your portfolio. {selectedProjects.length}/3 selected.
+            </p>
+            
+            {selectedProjects.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                No projects selected. Select up to 3 projects from the list below.
+              </div>
+            ) : (
+              <div>
+                {selectedProjects.map((project, index) => (
+                  <div 
+                    key={project.id} 
+                    className="flex items-center justify-between bg-gray-800 p-4 rounded-lg mb-2"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-violet-500 font-bold w-6">{index + 1}</span>
+                      <div className="w-12 h-12 overflow-hidden rounded-md">
+                        <img 
+                          src={getValidImagePath(project.image)} 
+                          alt={project.title} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{project.title}</h3>
+                        <p className="text-sm text-gray-400">{project.year}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => removeProject(index)} 
+                      className="text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-semibold mb-4">All Projects</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allProjects
+              .filter(project => !selectedProjects.some(p => p.id === project.id))
+              .map(project => (
+                <div
+                  key={project.id}
+                  className="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  <div className="w-full h-32 mb-3 overflow-hidden rounded-md">
+                    <img 
+                      src={getValidImagePath(project.image)} 
+                      alt={project.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-lg font-medium mb-1">{project.title}</h3>
+                  <p className="text-sm text-gray-400 mb-3">{project.year}</p>
+                  <p className="text-sm text-gray-300 mb-3 line-clamp-2">
+                    {project.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {project.languages.slice(0, 3).map((lang, i) => (
+                      <span 
+                        key={i} 
+                        className="px-2 py-1 text-xs bg-gray-800 rounded-full"
+                      >
+                        {lang}
+                      </span>
+                    ))}
+                    {project.languages.length > 3 && (
+                      <span className="px-2 py-1 text-xs bg-gray-800 rounded-full">
+                        +{project.languages.length - 3}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => addProject(project)}
+                    className="w-full px-3 py-2 mt-2 bg-violet-600/20 text-violet-300 hover:bg-violet-600/30 rounded-lg transition-colors"
+                    disabled={selectedProjects.length >= 3}
+                  >
+                    {selectedProjects.length >= 3 ? 'Max Selected' : 'Select Project'}
+                  </button>
+                </div>
+              ))}
+              
+            {allProjects.length === 0 && (
+              <div className="col-span-full text-center py-8 text-gray-500">
+                No projects found. <Link href="/admin/projects/new" className="text-violet-400 hover:underline">Add a project</Link> first.
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

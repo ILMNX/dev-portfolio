@@ -11,6 +11,9 @@ const getValidImageUrl = (url: string | URL | undefined | null): string => {
   // Default fallback image
   const fallbackImage = '/proj1.png';
   
+  // For debugging
+  console.log('Processing image URL:', url);
+  
   // If it's already a URL object from createObjectURL
   if (url instanceof URL) {
     return url.toString();
@@ -22,14 +25,19 @@ const getValidImageUrl = (url: string | URL | undefined | null): string => {
     return fallbackImage;
   }
   
-  // If it's a relative path, ensure it starts with /
-  if (!url.startsWith('http') && !url.startsWith('/')) {
-    return '/' + url;
-  }
-  
   // Handle blob URLs
   if (url.startsWith('blob:')) {
     return url;
+  }
+  
+  // If it's a relative path to uploads folder
+  if (url.includes('uploads/')) {
+    return url.startsWith('/') ? url : '/' + url;
+  }
+  
+  // If it's a relative path, ensure it starts with /
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return '/' + url;
   }
   
   // For normal URLs and properly formatted relative paths

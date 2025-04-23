@@ -28,23 +28,41 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     if (isNaN(projectId)) {
       return NextResponse.json({ success: false, error: 'Invalid project ID' }, { status: 400 });
     }
+    
     const data = await request.json();
     if (!data.title || !data.description || !data.year || !data.languages) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
+    
+    // Fix image handling - ensure proper object structure
+    let imageData;
+    if (typeof data.image === 'string') {
+      imageData = { src: data.image };
+    } else if (data.image && typeof data.image === 'object' && data.image.src) {
+      imageData = { src: data.image.src };
+    } else {
+      // Default fallback image
+      imageData = { src: '/proj1.png' };
+    }
+    
+    // Log processed image data for debugging
+    console.log('Processing image data for project update:', JSON.stringify(imageData));
+    
     const updatedProject = await updateProject(projectId, {
       title: data.title,
       year: parseInt(data.year),
       description: data.description,
       details: data.details || '',
       languages: data.languages,
-      image: typeof data.image === 'string' ? { src: data.image } : data.image,
+      image: imageData,
       githubLink: data.githubLink || '',
       liveLink: data.liveLink || ''
     });
+    
     if (!updatedProject) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
     }
+    
     return NextResponse.json({ success: true, message: `Project updated successfully`, project: updatedProject });
   } catch (error) {
     console.error('Error updating project:', error);

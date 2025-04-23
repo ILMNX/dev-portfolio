@@ -11,6 +11,8 @@ export const createProjectsTable = `
     image_url TEXT,
     github_link TEXT,
     live_link TEXT,
+    selected INTEGER DEFAULT 0, -- 0: not selected, 1: selected for portfolio
+    selected_order INTEGER DEFAULT 0, -- For ordering the selected projects
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )

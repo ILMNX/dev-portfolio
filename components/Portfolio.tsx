@@ -11,7 +11,7 @@ interface Project {
     year: number
     title: string
     description: string
-    image: { src: string }
+    image: { src: string } | string
     languages: string[]
     details?: string
     githubLink?: string
@@ -29,21 +29,21 @@ export const Portfolio = () => {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                console.log('Portfolio component: Fetching projects from API...')
+                console.log('Portfolio component: Fetching selected projects from API...')
                 // Fix: Use absolute URL with proper origin
                 const baseUrl = window.location.origin;
-                const res = await fetch(`${baseUrl}/api/projects`)
+                const res = await fetch(`${baseUrl}/api/projects/selected`)
                 const data = await res.json()
                 
                 if (data.success && data.projects?.length > 0) {
-                    console.log('Portfolio component: Successfully fetched projects:', data.projects.length)
+                    console.log('Portfolio component: Successfully fetched selected projects:', data.projects.length)
                     setProjects(data.projects)
                     setSelectedProject(data.projects[0])
                 } else {
-                    console.error('Portfolio component: Failed to fetch projects or no projects found:', data)
+                    console.error('Portfolio component: Failed to fetch selected projects or no projects found:', data)
                 }
             } catch (error) {
-                console.error('Portfolio component: Error fetching projects:', error)
+                console.error('Portfolio component: Error fetching selected projects:', error)
             } finally {
                 setLoading(false)
             }
@@ -181,55 +181,76 @@ export const Portfolio = () => {
                 return fallbackImage;
             }
 
-            // Log actual image data for debugging
-            console.log('Image data type:', typeof project.image, 'Value:', project.image);
+            // For debugging
+            console.log('Portfolio component - Processing image for project:', project.title);
             
-            // Case 1: No image data
-            if (!project.image) {
+            // Check for the specific error case we're seeing
+            if (project.image && 
+                typeof project.image === 'object' && 
+                project.image.src && 
+                project.image.src.includes('[object Object]')) {
+                console.log('Detected invalid image source with [object Object], using fallback');
                 return fallbackImage;
             }
             
-            // Case 2: Image is a string (direct path)
-            if (typeof project.image === 'string') {
-                // Ensure the string is not empty
-                const imageStr = project.image as string;
-                if (!imageStr.trim()) {
-                    return fallbackImage;
-                }
-                
-                // Handle relative paths - ensure they start with '/'
-                // Using explicit type guard to avoid 'never' type issue
-                const imgPath: string = imageStr;
-                if (!imgPath.startsWith('/') && !imgPath.startsWith('http')) {
-                    return '/' + imgPath;
-                }
-                
-                return imgPath;
+            // Case 1: No image data
+            if (!project.image) {
+                console.log('No image data found');
+                return fallbackImage;
             }
             
-            // Case 3: Image is an object with src property
+            // Case 2: Image is an object with src property
             if (typeof project.image === 'object' && project.image !== null) {
                 // Access the src property safely
-                const src = project.image.src;
-                
-                // Ensure src exists and is a string
-                if (!src || typeof src !== 'string') {
-                    console.log('Invalid src property:', src);
+                if (!project.image.src || 
+                    typeof project.image.src !== 'string' ||
+                    project.image.src === '/[object Object]') {
+                    console.log('Invalid src property in image object');
                     return fallbackImage;
                 }
                 
-                // Handle relative paths - ensure they start with '/'
-                // Using explicit typing to avoid 'never' type issue
-                const imgSrc: string = src;
-                if (!imgSrc.startsWith('/') && !imgSrc.startsWith('http')) {
-                    return '/' + imgSrc;
+                const src = project.image.src;
+                console.log('Valid image src from object:', src);
+                
+                // Handle uploads directory paths
+                if (src.includes('uploads/')) {
+                    const result = src.startsWith('/') ? src : '/' + src;
+                    return result;
                 }
                 
-                return imgSrc;
+                // If it's a full URL, return as is
+                if (src.startsWith('http')) {
+                    return src;
+                }
+                
+                // For other relative paths, ensure they start with '/'
+                return src.startsWith('/') ? src : '/' + src;
             }
             
-            // Case 4: Unexpected image format
-            console.log('Unexpected image format:', project.image);
+            // Case 3: Image is a string (direct path)
+            if (typeof project.image === 'string') {
+                const src = project.image;
+                
+                if (!src.trim() || src.includes('[object Object]')) {
+                    return fallbackImage;
+                }
+                
+                // Handle uploads directory paths
+                if (src.includes('uploads/')) {
+                    const result = src.startsWith('/') ? src : '/' + src;
+                    return result;
+                }
+                
+                // If it's a full URL, return as is
+                if (src.startsWith('http')) {
+                    return src;
+                }
+                
+                // For other relative paths, ensure they start with '/'
+                return src.startsWith('/') ? src : '/' + src;
+            }
+            
+            // Fallback for unexpected formats
             return fallbackImage;
         } catch (error) {
             console.error('Error processing image source:', error);

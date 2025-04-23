@@ -142,6 +142,17 @@ const AdminDashboard = () => {
                 <span>View Projects</span>
               </motion.div>
             </Link>
+            
+            <Link href="/admin/projects/selected">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-gray-900 p-4 rounded-xl text-center hover:bg-gray-800 transition-colors"
+              >
+                <span className="block text-2xl mb-2">⭐</span>
+                <span>Selected Projects</span>
+              </motion.div>
+            </Link>
           </div>
         </div>
       </main>

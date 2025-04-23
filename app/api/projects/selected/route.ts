@@ -1,0 +1,76 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getSelectedProjects, updateSelectedProjects } from '@/lib/db/projects';
+
+// GET endpoint to fetch only selected projects for the portfolio
+export async function GET() {
+  try {
+    const projects = await getSelectedProjects();
+    
+    // Enhanced debugging
+    console.log('API Selected Projects - FULL DATA: ', JSON.stringify(projects, null, 2));
+    
+    // Debug each project's image separately
+    projects.forEach((project, index) => {
+      console.log(`Project ${index + 1} (${project.title}) - Image data:`, 
+        typeof project.image === 'object' ? JSON.stringify(project.image) : project.image);
+      
+      if (project.image && typeof project.image === 'object' && project.image.src) {
+        console.log(`Project ${index + 1} src type:`, typeof project.image.src);
+        console.log(`Project ${index + 1} src value:`, project.image.src);
+      }
+    });
+    
+    return NextResponse.json({ 
+      success: true,
+      projects
+    });
+  } catch (error) {
+    console.error('Error fetching selected projects:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch selected projects' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST endpoint to update selected projects (max 3)
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json();
+    
+    // Validate the selected projects data
+    if (!Array.isArray(data.selectedProjects)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid selected projects data' },
+        { status: 400 }
+      );
+    }
+    
+    // Limit to maximum 3 selected projects
+    const selectedProjects = data.selectedProjects.slice(0, 3).map((project: any, index: number) => ({
+      id: project.id,
+      order: index + 1
+    }));
+    
+    // Update selected projects in the database
+    const result = await updateSelectedProjects(selectedProjects);
+    
+    if (!result) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to update selected projects' },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: "Selected projects updated successfully"
+    });
+  } catch (error) {
+    console.error('Error updating selected projects:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update selected projects' },
+      { status: 500 }
+    );
+  }
+}

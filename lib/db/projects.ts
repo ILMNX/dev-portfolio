@@ -11,6 +11,8 @@ interface Project {
   image: { src: string };
   githubLink?: string;
   liveLink?: string;
+  selected?: number; // 0: not selected, 1: selected
+  selectedOrder?: number; // Order in the selected projects list
   created_at?: string;
   updated_at?: string;
 }
@@ -26,12 +28,39 @@ interface ProjectRow {
   image_url: string | null;
   github_link: string | null;
   live_link: string | null;
+  selected: number;
+  selected_order: number;
   created_at: string;
   updated_at: string;
 }
 
 // Convert database row to Project
 function rowToProject(row: ProjectRow): Project {
+  // Make sure image paths are properly formatted
+  let imageSrc = row.image_url || '/proj1.png';
+
+  // Add logging to see the raw value from DB and the processed value
+  console.log(`rowToProject ID ${row.id}: DB image_url = "${row.image_url}", Initial imageSrc = "${imageSrc}"`);
+
+  // If image path is relative and from uploads directory, ensure it has leading slash
+  if (imageSrc && !imageSrc.startsWith('/') && !imageSrc.startsWith('http')) {
+    imageSrc = '/' + imageSrc;
+  }
+
+  // Parse JSON if it's stored as JSON string in DB
+  if (typeof imageSrc === 'string' && (imageSrc.startsWith('{') || imageSrc.includes('"src":'))) {
+    try {
+      const parsed = JSON.parse(imageSrc);
+      if (parsed && typeof parsed === 'object' && parsed.src) {
+        imageSrc = parsed.src;
+      }
+    } catch (e) {
+      console.error(`Failed to parse image JSON for project ${row.id}:`, e);
+    }
+  }
+
+  console.log(`rowToProject ID ${row.id}: Final imageSrc = "${imageSrc}"`);
+
   return {
     id: row.id,
     title: row.title,
@@ -39,9 +68,11 @@ function rowToProject(row: ProjectRow): Project {
     description: row.description,
     details: row.details || '',
     languages: JSON.parse(row.languages),
-    image: { src: row.image_url || '/proj1.png' },
+    image: { src: imageSrc }, // This should now use the potentially corrected string
     githubLink: row.github_link || '',
     liveLink: row.live_link || '',
+    selected: row.selected,
+    selectedOrder: row.selected_order,
     created_at: row.created_at,
     updated_at: row.updated_at
   };
@@ -180,6 +211,74 @@ export async function deleteProject(id: number): Promise<boolean> {
     return true;
   } catch (error) {
     console.error(`Error deleting project id ${id}:`, error);
+    return false;
+  }
+}
+
+// Get selected projects for portfolio display
+export async function getSelectedProjects(): Promise<Project[]> {
+  try {
+    const result = await turso.execute(`
+      SELECT * FROM projects 
+      WHERE selected = 1 
+      ORDER BY selected_order ASC
+      LIMIT 3
+    `);
+    return result.rows.map((row) => rowToProject(row as unknown as ProjectRow));
+  } catch (error) {
+    console.error('Error getting selected projects:', error);
+    return [];
+  }
+}
+
+// Update project selection status
+export async function updateProjectSelection(id: number, selected: boolean, order: number): Promise<boolean> {
+  try {
+    await turso.execute({
+      sql: `
+        UPDATE projects SET
+          selected = ?,
+          selected_order = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `,
+      args: [selected ? 1 : 0, order, id]
+    });
+    
+    return true;
+  } catch (error) {
+    console.error(`Error updating project selection for id ${id}:`, error);
+    return false;
+  }
+}
+
+// Update multiple projects' selection status at once
+export async function updateSelectedProjects(selectedProjects: {id: number, order: number}[]): Promise<boolean> {
+  try {
+    // First, reset all projects to not selected
+    await turso.execute(`
+      UPDATE projects SET
+        selected = 0,
+        selected_order = 0
+    `);
+    
+    // Then set the selected projects
+    for (const project of selectedProjects) {
+      await turso.execute({
+        sql: `
+          UPDATE projects SET
+            selected = 1,
+            selected_order = ?,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `,
+        args: [project.order, project.id]
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating selected projects:', error);
     return false;
   }
 }
