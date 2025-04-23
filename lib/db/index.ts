@@ -12,7 +12,10 @@ export async function initializeDatabase() {
     try {
       // Check if the selected column exists
       const columnCheckResult = await turso.execute(`PRAGMA table_info(projects)`);
-      const columns = columnCheckResult.rows.map((row: any) => row.name);
+      
+      // Use the Row type from Turso's return value
+      // The type is generic and allows access to properties by name
+      const columns = columnCheckResult.rows.map((row) => row.name as string);
       
       if (!columns.includes('selected')) {
         await turso.execute(`ALTER TABLE projects ADD COLUMN selected INTEGER DEFAULT 0`);
