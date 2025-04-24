@@ -66,10 +66,10 @@ export const Portfolio = () => {
     const gradientPos3 = useMotionValue(66)
     const gradientPos4 = useMotionValue(100)
     
-    const color1 = useMotionValue(colorPalette.purples[0])
-    const color2 = useMotionValue(colorPalette.pinks[0])
-    const color3 = useMotionValue(colorPalette.blues[0]) 
-    const color4 = useMotionValue(colorPalette.greens[0])
+    const color1 = useMotionValue(`${colorPalette.purples[0]}FF`) // FF for full opacity
+    const color2 = useMotionValue(`${colorPalette.pinks[0]}FF`)
+    const color3 = useMotionValue(`${colorPalette.blues[0]}FF`)
+    const color4 = useMotionValue(`${colorPalette.greens[0]}FF`)
     
     // Values for breathing effect
     const gradientSize = useMotionValue(100)
@@ -260,22 +260,11 @@ export const Portfolio = () => {
 
     // Vibrant breathing gradient based on the image
     const backgroundImage = useMotionTemplate`
-        linear-gradient(
-            ${gradientAngle}deg,
-            ${color1} ${gradientPos1}%,
-            ${color2} ${gradientPos2}%,
-            ${color3} ${gradientPos3}%,
-            ${color4} ${gradientPos4}%
-        ),
-        radial-gradient(
-            circle at 25% 25%,
-            ${color1}99 0%,
-            transparent ${gradientSize}%
-        ),
-        radial-gradient(
-            circle at 75% 75%,
-            ${color3}99 0%,
-            transparent ${gradientSize}%
+       linear-gradient(
+        ${gradientAngle}deg,
+        ${color1} 0%,
+        ${color2} 50%,
+        ${color3} 100%
         )
     `
 
@@ -335,6 +324,7 @@ export const Portfolio = () => {
             style={{
                 backgroundImage,
                 backgroundSize: "300% 300%",
+                backgroundPosition : "0% 0%",
                 position: "relative",
             }}
             animate={{
@@ -346,9 +336,10 @@ export const Portfolio = () => {
                 repeatType: "mirror",
                 ease: "easeInOut"
             }}
-            className="py-32 relative overflow-hidden text-white"
+            className="py-32 relative overflow-hidden bg-black text-white"
             id="portfolio"
         >
+            <div className="absolute inset-0 opacity-90 z-0"></div>
             <div className="relative z-10">
                 <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-12 gap-12">
                     <div className="lg:col-span-5">
