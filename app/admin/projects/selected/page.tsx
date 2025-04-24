@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Project type definition
 interface Project {
@@ -234,7 +235,7 @@ export default function SelectedProjectsPage() {
                     <div className="flex items-center space-x-3">
                       <span className="text-violet-500 font-bold w-6">{index + 1}</span>
                       <div className="w-12 h-12 overflow-hidden rounded-md">
-                        <img 
+                        <Image 
                           src={getValidImagePath(project.image)} 
                           alt={project.title} 
                           className="w-full h-full object-cover"
@@ -269,7 +270,7 @@ export default function SelectedProjectsPage() {
                   className="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   <div className="w-full h-32 mb-3 overflow-hidden rounded-md">
-                    <img 
+                    <Image 
                       src={getValidImagePath(project.image)} 
                       alt={project.title} 
                       className="w-full h-full object-cover"

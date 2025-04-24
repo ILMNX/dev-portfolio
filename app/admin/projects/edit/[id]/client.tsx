@@ -56,6 +56,9 @@ export function ProjectEditClient({ id }: { id: string }) {
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  
+    
   
   // Form state
   const [form, setForm] = useState({
@@ -68,6 +71,13 @@ export function ProjectEditClient({ id }: { id: string }) {
     liveLink: '',
     image: '/proj1.png' // Default image path
   })
+
+  useEffect(() => {
+    const AdminAuth = localStorage.getItem('adminAuth')
+    if (!AdminAuth){
+      router.push('/admin')
+      return
+    }
 
   const fetchProject = async () => {
     try {
@@ -105,17 +115,10 @@ export function ProjectEditClient({ id }: { id: string }) {
     }
   }
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const adminAuth = localStorage.getItem('adminAuth')
-    if (!adminAuth) {
-      router.push('/admin')
-      return
-    }
     
     // Get the project data to edit
     fetchProject()
-  }, [id, router, fetchProject])
+  }, [id, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
