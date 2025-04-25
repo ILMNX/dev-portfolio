@@ -7,14 +7,12 @@ import ProjectsList from './ProjectsList' // This is now correctly importing fro
 async function getProjects() {
     try {
         console.log('Fetching projects from API...')
-        // Fix: Use absolute URL with proper origin
-        const baseUrl = process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}` 
-            : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-            
-        const res = await fetch(`${baseUrl}/api/projects`, {
+        
+        // Use a relative URL for internal API routes
+        const res = await fetch('/api/projects', {
             cache: 'no-store',
         })
+        
         const data = await res.json()
         if (data.success) {
             console.log('Successfully fetched projects:', data.projects.length)
