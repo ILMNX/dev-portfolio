@@ -21,15 +21,12 @@ async function getProjects() {
             const protocol = host.includes('localhost') ? 'http://' : 'https://';
             baseUrl = `${protocol}${host}`;
             console.log('Using host from headers:', baseUrl);
-        } catch (e) {
-            // Fallback if headers() fails (can happen in certain contexts)
-            baseUrl = isDev 
-                ? 'http://localhost:3000' 
-                : process.env.NEXT_PUBLIC_VERCEL_URL 
-                    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-                    : '';
-            console.log('Using fallback base URL:', baseUrl);
         }
+       catch(error){
+        console.error('Error getting host from headers:', error);
+        baseUrl = isDev ? 'http://localhost:3000' : 'https://gilbertdev-portfolio-git-master-gilberts-projects-74bc1ad2.vercel.app';
+       }
+        
         
         // Use a correctly constructed URL with explicit protocol
         const apiUrl = `${baseUrl}/api/projects`;
