@@ -55,11 +55,11 @@ export const Contact = () => {
                             </div>
                             <div className="space-y-2">
                                 <p className="text-lg text-gray-300">Email</p>
-                                <a href="mailto:gilbertsibuea8539@gmail.com" 
+                                <a href="mailto:devgilberths@gmail.com" 
                                    className="text-xl sm:text-2xl font-semibold hover:text-gray-400 transition duration-300 flex items-center gap-2"
                                 >
                                     <MdEmail className="text-red-400 text-2xl sm:text-3xl" />
-                                    gilbertsibuea8539@gmail.com
+                                    devgilberths@gmail.com
                                 </a>
                             </div>
                             <div className="space-y-2">
