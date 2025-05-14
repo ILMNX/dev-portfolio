@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { motion, animate, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 // Project type definition
 interface Project {
