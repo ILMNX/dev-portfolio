@@ -6,6 +6,7 @@ import { FiArrowRight, FiMail } from "react-icons/fi"
 
 export const Hero = () => {
     const vantaRef = useRef<HTMLDivElement>(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vantaEffect = useRef<any>(null)
 
     useEffect(() => {
@@ -16,7 +17,7 @@ export const Hero = () => {
         // Dynamically load three.js and vanta.halo.min.js from CDN
         const loadScripts = async () => {
             if (typeof window === 'undefined') return;
-            // @ts-ignore
+            // @ts-expect-error
             if (!window.THREE) {
                 threeScript = document.createElement('script');
                 threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
@@ -31,9 +32,9 @@ export const Hero = () => {
             await new Promise(res => { vantaScript!.onload = res; });
 
             if (cleanup) return;
-            // @ts-ignore
+            // @ts-expect-error
             if (window.VANTA && window.VANTA.HALO && vantaRef.current) {
-                // @ts-ignore
+                // @ts-expect-error
                 vantaEffect.current = window.VANTA.HALO({
                     el: vantaRef.current,
                     mouseControls: true,
