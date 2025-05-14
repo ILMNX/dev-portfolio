@@ -14,10 +14,10 @@ export const Hero = () => {
         let vantaScript: HTMLScriptElement | null = null;
         let cleanup = false;
 
-        // Dynamically load three.js and vanta.halo.min.js from CDN
+        // Dynamically load three.js and vanta.net.min.js from CDN
         const loadScripts = async () => {
             if (typeof window === 'undefined') return;
-            // @ts-expect-error asdfdfgsdfgdfsg
+            // @ts-expect-error asdfasdfasdfasd
             if (!window.THREE) {
                 threeScript = document.createElement('script');
                 threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
@@ -26,22 +26,28 @@ export const Hero = () => {
                 await new Promise(res => { threeScript!.onload = res; });
             }
             vantaScript = document.createElement('script');
-            vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.halo.min.js';
+            vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js';
             vantaScript.async = true;
             document.body.appendChild(vantaScript);
             await new Promise(res => { vantaScript!.onload = res; });
 
             if (cleanup) return;
-            // @ts-expect-error asdadssdfasdf
-            if (window.VANTA && window.VANTA.HALO && vantaRef.current) {
-                // @ts-expect-error asdfsdfasdfsdfg
-                vantaEffect.current = window.VANTA.HALO({
+            // @ts-expect-error asdfasdfasdfas
+            if (window.VANTA && window.VANTA.NET && vantaRef.current) {
+                // @ts-expect-error sadfasdfasdf
+                vantaEffect.current = window.VANTA.NET({
                     el: vantaRef.current,
                     mouseControls: true,
                     touchControls: true,
                     gyroControls: false,
                     minHeight: 200.00,
                     minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: 0xac9ee3,
+                    points: 9.00,
+                    maxDistance: 22.00,
+                    spacing: 17.00
                 });
             }
         };
@@ -68,6 +74,23 @@ export const Hero = () => {
         <section className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200">
             {/* Vanta.js background layer */}
             <div ref={vantaRef} id="vanta-bg" className="absolute inset-0 w-full h-full -z-10" />
+            {/* Grain blur overlay */}
+            <div
+                className="pointer-events-none absolute inset-0 w-full h-full -z-5"
+                style={{
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    background: 'rgba(0,0,0,0.04)',
+                    mixBlendMode: 'soft-light',
+                    opacity: 0.85,
+                    zIndex: -5,
+                    /* Grain effect using CSS noise texture */
+                    backgroundImage: `
+                        repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 8px),
+                        repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 8px)
+                    `,
+                }}
+            />
             <div className="z-10 flex flex-col items-center">
                 <span className="mb-7 inline-block rounded-full bg-gray-600/50 px-3 py-1.5 text-sm">
                     Open for work
