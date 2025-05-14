@@ -1,63 +1,59 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useMotionValue, useTransform } from "framer-motion"
-import { animate } from "framer-motion"
-import { useMotionTemplate } from "framer-motion"
 import { motion } from "framer-motion"
 import { FiArrowRight, FiMail } from "react-icons/fi"
 
-const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"]
-
-// SVG Path for blob animation
-const blobVariants = {
-  initial: {
-    d: "M118.5,-133.6C156.9,-100.9,193.7,-66.7,205.8,-24.6C217.9,17.5,205.2,67.5,175.8,103.2C146.3,138.8,100.1,160.1,52.2,173.6C4.3,187.1,-45.4,192.9,-87.1,173.7C-128.7,154.5,-162.4,110.3,-181.6,61.4C-200.8,12.5,-205.4,-41.3,-183.3,-81.1C-161.2,-120.9,-112.3,-146.9,-68.4,-175.9C-24.5,-204.8,14.4,-236.9,50.3,-226.3C86.3,-215.7,119.2,-162.5,154.3,-124.8",
-  },
-  animate: {
-    d: [
-      "M118.5,-133.6C156.9,-100.9,193.7,-66.7,205.8,-24.6C217.9,17.5,205.2,67.5,175.8,103.2C146.3,138.8,100.1,160.1,52.2,173.6C4.3,187.1,-45.4,192.9,-87.1,173.7C-128.7,154.5,-162.4,110.3,-181.6,61.4C-200.8,12.5,-205.4,-41.3,-183.3,-81.1C-161.2,-120.9,-112.3,-146.9,-68.4,-175.9C-24.5,-204.8,14.4,-236.9,50.3,-226.3C86.3,-215.7,119.2,-162.5,118.5,-133.6",
-      "M132.1,-154.1C170.4,-125.8,200.2,-82.2,206.8,-36.1C213.3,10,196.6,58.6,168.5,95.9C140.4,133.1,100.8,159,56.1,177.7C11.4,196.3,-38.5,207.7,-82.2,194.1C-125.9,180.5,-163.4,142,-186.6,96.6C-209.8,51.1,-218.7,-1.5,-208.5,-51.5C-198.3,-101.5,-168.9,-149,-128.2,-176.5C-87.4,-204.1,-35.3,-211.7,6.9,-219.4C49.1,-227,93.8,-182.5,132.1,-154.1",
-      "M140.2,-169.8C177.8,-132.5,201.7,-84.3,209.3,-34.1C216.8,16.1,208,68.1,180.9,105.6C153.8,143.1,108.4,166,59.4,182.5C10.4,199,-42.1,209,-85.6,195.2C-129.1,181.3,-163.6,143.6,-185.9,98.9C-208.3,54.2,-218.5,2.5,-206.3,-41.2C-194.1,-84.8,-159.5,-120.4,-121.4,-157.3C-83.3,-194.2,-41.7,-232.4,4.2,-237.3C50,-242.2,100,-207,140.2,-169.8",
-      "M118.5,-133.6C156.9,-100.9,193.7,-66.7,205.8,-24.6C217.9,17.5,205.2,67.5,175.8,103.2C146.3,138.8,100.1,160.1,52.2,173.6C4.3,187.1,-45.4,192.9,-87.1,173.7C-128.7,154.5,-162.4,110.3,-181.6,61.4C-200.8,12.5,-205.4,-41.3,-183.3,-81.1C-161.2,-120.9,-112.3,-146.9,-68.4,-175.9C-24.5,-204.8,14.4,-236.9,50.3,-226.3C86.3,-215.7,119.2,-162.5,118.5,-133.6"
-    ],
-    transition: {
-      duration: 20,
-      repeat: Infinity,
-      repeatType: "mirror" as const,
-      ease: "easeInOut"
-    }
-  }
-};
-
 export const Hero = () => {
-    const color = useMotionValue(COLORS_TOP[0])
-    const blobRef = useRef(null)
+    const vantaRef = useRef<HTMLDivElement>(null)
+    const vantaEffect = useRef<any>(null)
 
-    //to control the effect of the color change
     useEffect(() => {
-        animate(color,COLORS_TOP,{
-            ease: "easeInOut",
-            duration : 10,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-    },[color])
+        let threeScript: HTMLScriptElement | null = null;
+        let vantaScript: HTMLScriptElement | null = null;
+        let cleanup = false;
 
-    const backgroundImage = useMotionTemplate `radial-gradient(125% 125% at 50% 0%, #000 50%, ${color})`
-    const border = useMotionTemplate `1px solid ${color}`
-    const boxShadow = useMotionTemplate `0px 4px 24px ${color}`
-    const gradientStop1 = useMotionTemplate `${color}`
-    
-    // Adding slight rotation to the blob
-    const rotate = useMotionValue(0)
-    useEffect(() => {
-        animate(rotate, 360, {
-            duration: 60,
-            repeat: Infinity,
-            ease: "linear"
-        })
-    }, [rotate])
+        // Dynamically load three.js and vanta.halo.min.js from CDN
+        const loadScripts = async () => {
+            if (typeof window === 'undefined') return;
+            // @ts-ignore
+            if (!window.THREE) {
+                threeScript = document.createElement('script');
+                threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
+                threeScript.async = true;
+                document.body.appendChild(threeScript);
+                await new Promise(res => { threeScript!.onload = res; });
+            }
+            vantaScript = document.createElement('script');
+            vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.halo.min.js';
+            vantaScript.async = true;
+            document.body.appendChild(vantaScript);
+            await new Promise(res => { vantaScript!.onload = res; });
+
+            if (cleanup) return;
+            // @ts-ignore
+            if (window.VANTA && window.VANTA.HALO && vantaRef.current) {
+                // @ts-ignore
+                vantaEffect.current = window.VANTA.HALO({
+                    el: vantaRef.current,
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                });
+            }
+        };
+        loadScripts();
+        return () => {
+            cleanup = true;
+            if (vantaEffect.current) {
+                vantaEffect.current.destroy();
+            }
+            if (threeScript) document.body.removeChild(threeScript);
+            if (vantaScript) document.body.removeChild(vantaScript);
+        };
+    }, []);
 
     const scrollToContact = () => {
         const contactSection = document.querySelector('#contact')
@@ -67,36 +63,10 @@ export const Hero = () => {
         })
     }
 
-    // Motion values for blob movement
-    const x = useMotionValue(0)
-    const y = useMotionValue(0)
-    
-    useEffect(() => {
-        const handleMouseMove = (e: { clientX: number; clientY: number }) => {
-            // Subtle movement following the mouse
-            const xPos = (e.clientX / window.innerWidth - 0.5) * 30
-            const yPos = (e.clientY / window.innerHeight - 0.5) * 30
-            
-            animate(x, xPos, { duration: 2, ease: "easeOut" })
-            animate(y, yPos, { duration: 2, ease: "easeOut" })
-        }
-        
-        window.addEventListener('mousemove', handleMouseMove)
-        return () => window.removeEventListener('mousemove', handleMouseMove)
-    }, [x, y])
-
-    // Transform motion values for blob movement
-    const blobX = useTransform(x, [-15, 15], ['-2%', '2%'])
-    const blobY = useTransform(y, [-15, 15], ['-2%', '2%'])
-    const blobScale = useTransform(y, [-15, 15], [0.98, 1.02])
-
     return(
-        <motion.section
-        style={{
-            backgroundImage
-        }}
-        className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200"
-        >
+        <section className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200">
+            {/* Vanta.js background layer */}
+            <div ref={vantaRef} id="vanta-bg" className="absolute inset-0 w-full h-full -z-10" />
             <div className="z-10 flex flex-col items-center">
                 <span className="mb-7 inline-block rounded-full bg-gray-600/50 px-3 py-1.5 text-sm">
                     Open for work
@@ -114,18 +84,13 @@ export const Hero = () => {
                 <div className="flex flex-col sm:flex-row gap-4 items-center">
                     <motion.button
                         onClick={() => window.open('https://www.canva.com/design/DAGhsbBQGPo/Cq0wE9ktnUkrnOQnH4F9KA/view?utm_content=DAGhsbBQGPo&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h6f3875e230', '_blank')}
-                        style={{
-                            border,
-                            boxShadow
-                        }}
                         whileHover={{
                             scale: 1.05,
-                            boxShadow: `0px 4px 24px ${color}`
                         }}
                         whileTap={{
                             scale: 0.985
                         }}
-                        className="flex w-fit items-center gap-2 rounded-full px-4 py-2"
+                        className="flex w-fit items-center gap-2 rounded-full px-4 py-2 border border-gray-300 shadow-md"
                     >
                         Download CV
                         <FiArrowRight className="ml-1"/>   
@@ -133,18 +98,13 @@ export const Hero = () => {
 
                     <motion.button
                         onClick={scrollToContact}
-                        style={{
-                            border: useMotionTemplate `1px solid rgba(255,255,255,0.3)`,
-                            backgroundColor: 'rgba(255,255,255,0.1)'
-                        }}
                         whileHover={{
                             scale: 1.05,
-                            backgroundColor: 'rgba(255,255,255,0.2)'
                         }}
                         whileTap={{
                             scale: 0.985
                         }}
-                        className="flex w-fit items-center gap-2 rounded-full px-4 py-2"
+                        className="flex w-fit items-center gap-2 rounded-full px-4 py-2 border border-gray-300 shadow-md"
                     >
                         Contact Me!
                         <FiMail className="ml-1"/>   
@@ -262,97 +222,6 @@ export const Hero = () => {
                 {/* End Social Links Container */}
 
             </div>
-            
-            {/* Metallic Gradient Liquid Blob */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div 
-                    className="absolute top-[-40%] right-[-20%] w-[120%] h-[120%] pointer-events-none"
-                    style={{
-                        x: blobX,
-                        y: blobY,
-                        scale: blobScale,
-                        rotate: rotate,
-                    }}
-                >
-                    <svg 
-                        viewBox="-300 -300 600 600"
-                        width="100%" 
-                        height="100%" 
-                        className="w-full h-full opacity-40"
-                    >
-                        <defs>
-                            {/* Define the radial gradient */}
-                            <radialGradient id="blobGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                                <motion.stop offset="0%" style={{ stopColor: "#fff" }} />
-                                <motion.stop offset="50%" style={{ stopColor: gradientStop1 }} />
-                                <motion.stop offset="100%" style={{ stopColor: "#000" }} />
-                            </radialGradient>
-                            
-                            {/* Metallic effect filters */}
-                            <filter id="gooey" width="200%" height="200%" x="-50%" y="-50%">
-                                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-                                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" result="gooey" />
-                            </filter>
-                            
-                            <filter id="metallic" width="200%" height="200%" x="-50%" y="-50%">
-                                <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
-                                <feSpecularLighting result="specOut" in="blur" specularExponent="20" lightingColor="#fff">
-                                    <fePointLight x="0" y="0" z="200" />
-                                </feSpecularLighting>
-                                <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
-                            </filter>
-                            
-                            <filter id="turbulence" width="200%" height="200%" x="-50%" y="-50%">
-                                <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" seed="1" />
-                                <feDisplacementMap in="SourceGraphic" scale="15" />
-                            </filter>
-                        </defs>
-                        
-                        <motion.path
-                            ref={blobRef}
-                            variants={blobVariants}
-                            initial="initial"
-                            animate="animate"
-                            fill="url(#blobGradient)"
-                            style={{ filter: "url(#metallic) url(#gooey)" }}
-                            className="transform-origin-center"
-                        />
-                    </svg>
-                </motion.div>
-                
-                {/* Secondary smaller blob for added effect */}
-                <motion.div 
-                    className="absolute bottom-[-30%] left-[-10%] w-[80%] h-[80%] opacity-30 pointer-events-none"
-                    style={{
-                        x: useTransform(x, [-15, 15], ['3%', '-3%']),
-                        y: useTransform(y, [-15, 15], ['3%', '-3%']),
-                        scale: useTransform(y, [-15, 15], [1.02, 0.98]),
-                        rotate: useMotionValue(180),
-                    }}
-                    animate={{
-                        rotate: 540,
-                        transition: { duration: 80, repeat: Infinity, ease: "linear" }
-                    }}
-                >
-                    <svg 
-                        viewBox="-300 -300 600 600"
-                        width="100%" 
-                        height="100%" 
-                        className="w-full h-full"
-                    >
-                        <motion.path
-                            variants={blobVariants}
-                            initial="initial"
-                            animate="animate"
-                            fill="url(#blobGradient)"
-                            style={{ filter: "url(#turbulence) url(#gooey)" }}
-                            className="transform-origin-center"
-                        />
-                    </svg>
-                </motion.div>
-            </div>
-            {/* End Metallic Gradient Liquid Blob */}
-
-        </motion.section>
+        </section>
     )
 }
