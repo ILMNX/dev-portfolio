@@ -17,7 +17,7 @@ export const Hero = () => {
         // Dynamically load three.js and vanta.halo.min.js from CDN
         const loadScripts = async () => {
             if (typeof window === 'undefined') return;
-            // @ts-expect-error
+            // @ts-expect-error asdfdfgsdfgdfsg
             if (!window.THREE) {
                 threeScript = document.createElement('script');
                 threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
@@ -32,9 +32,9 @@ export const Hero = () => {
             await new Promise(res => { vantaScript!.onload = res; });
 
             if (cleanup) return;
-            // @ts-expect-error
+            // @ts-expect-error asdadssdfasdf
             if (window.VANTA && window.VANTA.HALO && vantaRef.current) {
-                // @ts-expect-error
+                // @ts-expect-error asdfsdfasdfsdfg
                 vantaEffect.current = window.VANTA.HALO({
                     el: vantaRef.current,
                     mouseControls: true,
