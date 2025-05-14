@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useMotionTemplate, useMotionValue, motion, animate, AnimatePresence } from "framer-motion"
+import { motion, animate, AnimatePresence } from "framer-motion"
 
 // Project type definition
 interface Project {
@@ -18,13 +18,38 @@ interface Project {
     liveLink?: string
 }
 
+// Image animation variants
+const imageVariants = {
+    enter: (direction: number) => ({
+        x: direction > 0 ? 1000 : -1000,
+        opacity: 0,
+        scale: 0.8,
+    }),
+    center: {
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        transition: {
+            duration: 0.5
+        }
+    },
+    exit: (direction: number) => ({
+        x: direction < 0 ? 1000 : -1000,
+        opacity: 0,
+        scale: 0.8,
+        transition: {
+            duration: 0.5
+        }
+    })
+}
+
 export const Portfolio = () => {
     const [projects, setProjects] = useState<Project[]>([])
     const [selectedProject, setSelectedProject] = useState<Project | null>(null)
     const [loading, setLoading] = useState(true)
     const [direction, setDirection] = useState(0) // -1 for left, 1 for right
     const carouselRef = useRef(null)
-    
+
     // Fetch projects from the API
     useEffect(() => {
         const fetchProjects = async () => {
@@ -52,29 +77,6 @@ export const Portfolio = () => {
         fetchProjects()
     }, [])
     
-    // Vibrant color palette based on the image (purple, pink, blue, green)
-    const colorPalette = {
-        purples: ["#3a1c71", "#4C1D95", "#6D28D9", "#8B5CF6"],
-        pinks: ["#EC4899", "#F472B6", "#DB2777", "#BE185D"],
-        blues: ["#0284C7", "#38BDF8", "#0EA5E9", "#0369A1"],
-        greens: ["#10B981", "#34D399", "#059669", "#047857"]
-    }
-    
-    // Motion values for gradient positions and colors
-    const gradientPos1 = useMotionValue(0)
-    const gradientPos2 = useMotionValue(33)
-    const gradientPos3 = useMotionValue(66)
-    const gradientPos4 = useMotionValue(100)
-    
-    const color1 = useMotionValue(`${colorPalette.purples[0]}FF`) // FF for full opacity
-    const color2 = useMotionValue(`${colorPalette.pinks[0]}FF`)
-    const color3 = useMotionValue(`${colorPalette.blues[0]}FF`)
-    const color4 = useMotionValue(`${colorPalette.greens[0]}FF`)
-    
-    // Values for breathing effect
-    const gradientSize = useMotionValue(100)
-    const gradientAngle = useMotionValue(130)
-
     const handlePrevProject = () => {
         if (!selectedProject || projects.length <= 1) return
         
@@ -92,82 +94,6 @@ export const Portfolio = () => {
         const newIndex = (currentIndex + 1) % projects.length
         setSelectedProject(projects[newIndex])
     }
-
-    useEffect(() => {
-        // Animate gradient positions for movement
-        animate(gradientPos1, [0, 10, 0], {
-            ease: "easeInOut",
-            duration: 20,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-        
-        animate(gradientPos2, [33, 28, 38, 33], {
-            ease: "easeInOut",
-            duration: 18,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-        
-        animate(gradientPos3, [66, 62, 72, 66], {
-            ease: "easeInOut",
-            duration: 22,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-        
-        animate(gradientPos4, [100, 95, 105, 100], {
-            ease: "easeInOut",
-            duration: 24,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-
-        // Animate colors to cycle through their palettes
-        animate(color1, colorPalette.purples, {
-            ease: "easeInOut",
-            duration: 15,
-            repeat: Infinity,
-            repeatType: "loop"
-        })
-        
-        animate(color2, colorPalette.pinks, {
-            ease: "easeInOut",
-            duration: 18, 
-            repeat: Infinity,
-            repeatType: "loop"
-        })
-        
-        animate(color3, colorPalette.blues, {
-            ease: "easeInOut",
-            duration: 17,
-            repeat: Infinity,
-            repeatType: "loop"
-        })
-        
-        animate(color4, colorPalette.greens, {
-            ease: "easeInOut",
-            duration: 19,
-            repeat: Infinity,
-            repeatType: "loop"
-        })
-
-        // Animate angle for subtle rotation
-        animate(gradientAngle, [130, 150, 130], {
-            ease: "easeInOut",
-            duration: 30,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-        
-        // Animate gradient size for breathing effect
-        animate(gradientSize, [100, 120, 100], {
-            ease: "easeInOut",
-            duration: 12,
-            repeat: Infinity,
-            repeatType: "mirror"
-        })
-    }, [])
 
     // Helper function to ensure valid image URLs
     const getValidImageSrc = (project: Project | null): string => {
@@ -258,41 +184,6 @@ export const Portfolio = () => {
         }
     };
 
-    // Vibrant breathing gradient based on the image
-    const backgroundImage = useMotionTemplate`
-       linear-gradient(
-        ${gradientAngle}deg,
-        ${color1} 0%,
-        ${color2} 50%,
-        ${color3} 100%
-        )
-    `
-
-    // Image animation variants
-    const imageVariants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? 1000 : -1000,
-            opacity: 0,
-            scale: 0.8,
-        }),
-        center: {
-            x: 0,
-            opacity: 1,
-            scale: 1,
-            transition: {
-                duration: 0.5
-            }
-        },
-        exit: (direction: number) => ({
-            x: direction < 0 ? 1000 : -1000,
-            opacity: 0,
-            scale: 0.8,
-            transition: {
-                duration: 0.5
-            }
-        })
-    }
-
     // Show loading spinner if loading or no projects
     if (loading) {
         return (
@@ -320,26 +211,7 @@ export const Portfolio = () => {
     }
 
     return(
-        <motion.section 
-            style={{
-                backgroundImage,
-                backgroundSize: "300% 300%",
-                backgroundPosition : "0% 0%",
-                position: "relative",
-            }}
-            animate={{
-                backgroundPosition: ["0% 0%", "100% 100%"]
-            }}
-            transition={{
-                duration: 30,
-                repeat: Infinity,
-                repeatType: "mirror",
-                ease: "easeInOut"
-            }}
-            className="py-32 relative overflow-hidden bg-black text-white"
-            id="portfolio"
-        >
-            <div className="absolute inset-0 opacity-90 z-0"></div>
+        <section className="py-32 relative overflow-hidden bg-gradient-to-br from-[#18181b] via-[#23234a] to-[#18181b] text-white" id="portfolio">
             <div className="relative z-10">
                 <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-12 gap-12">
                     <div className="lg:col-span-5">
@@ -469,7 +341,7 @@ export const Portfolio = () => {
                     </div>
                 </div>
             </div>
-        </motion.section>
+        </section>
     )
 }
 
