@@ -9,6 +9,14 @@ import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights} from '@vercel/speed-insights/next';
+import type { Metadata } from 'next';
+import { generateMetadata, siteConfig } from '@/lib/metadata';
+
+export const metadata: Metadata = generateMetadata({
+  title: "Home",
+  description: `Welcome to ${siteConfig.name}'s portfolio. Discover innovative web applications, mobile solutions, and software projects built with cutting-edge technologies like React, Next.js, Node.js, and more. Available for freelance projects and full-time opportunities.`,
+  url: siteConfig.url,
+});
 
 export default function Home() {
   return (
