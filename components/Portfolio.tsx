@@ -47,7 +47,7 @@ export const Portfolio = () => {
     const [projects, setProjects] = useState<Project[]>([])
     const [selectedProject, setSelectedProject] = useState<Project | null>(null)
     const [loading, setLoading] = useState(true)
-    const [direction, setDirection] = useState(0) // -1 for left, 1 for right
+    const [direction, setDirection] = useState(0)
     const carouselRef = useRef(null)
 
     // Fetch projects from the API
@@ -55,7 +55,6 @@ export const Portfolio = () => {
         const fetchProjects = async () => {
             try {
                 console.log('Portfolio component: Fetching selected projects from API...')
-                // Fix: Use absolute URL with proper origin
                 const baseUrl = window.location.origin;
                 const res = await fetch(`${baseUrl}/api/projects/selected`)
                 const data = await res.json()
@@ -95,96 +94,81 @@ export const Portfolio = () => {
         setSelectedProject(projects[newIndex])
     }
 
-    // Helper function to ensure valid image URLs
     const getValidImageSrc = (project: Project | null): string => {
-        // Default fallback image - always use absolute path
-        const fallbackImage = '/proj1.png';
-        
-        try {
-            // Safety check for missing project
-            if (!project) {
-                console.log('Missing project data');
-                return fallbackImage;
-            }
-
-            // For debugging
-            console.log('Portfolio component - Processing image for project:', project.title);
-            
-            // Check for the specific error case we're seeing
-            if (project.image && 
-                typeof project.image === 'object' && 
-                project.image.src && 
-                project.image.src.includes('[object Object]')) {
-                console.log('Detected invalid image source with [object Object], using fallback');
-                return fallbackImage;
-            }
-            
-            // Case 1: No image data
-            if (!project.image) {
-                console.log('No image data found');
-                return fallbackImage;
-            }
-            
-            // Case 2: Image is an object with src property
-            if (typeof project.image === 'object' && project.image !== null) {
-                // Access the src property safely
-                if (!project.image.src || 
-                    typeof project.image.src !== 'string' ||
-                    project.image.src === '/[object Object]') {
-                    console.log('Invalid src property in image object');
-                    return fallbackImage;
-                }
-                
-                const src = project.image.src;
-                console.log('Valid image src from object:', src);
-                
-                // Handle uploads directory paths
-                if (src.includes('uploads/')) {
-                    const result = src.startsWith('/') ? src : '/' + src;
-                    return result;
-                }
-                
-                // If it's a full URL, return as is
-                if (src.startsWith('http')) {
-                    return src;
-                }
-                
-                // For other relative paths, ensure they start with '/'
-                return src.startsWith('/') ? src : '/' + src;
-            }
-            
-            // Case 3: Image is a string (direct path)
-            if (typeof project.image === 'string') {
-                const src = project.image;
-                
-                if (!src.trim() || src.includes('[object Object]')) {
-                    return fallbackImage;
-                }
-                
-                // Handle uploads directory paths
-                if (src.includes('uploads/')) {
-                    const result = src.startsWith('/') ? src : '/' + src;
-                    return result;
-                }
-                
-                // If it's a full URL, return as is
-                if (src.startsWith('http')) {
-                    return src;
-                }
-                
-                // For other relative paths, ensure they start with '/'
-                return src.startsWith('/') ? src : '/' + src;
-            }
-            
-            // Fallback for unexpected formats
-            return fallbackImage;
-        } catch (error) {
-            console.error('Error processing image source:', error);
+    const fallbackImage = '/proj1.gif';
+    
+    try {
+        if (!project) {
+            console.log('Missing project data');
             return fallbackImage;
         }
+
+        console.log('Portfolio component - Processing image for project:', project.title);
+        
+        if (!project.image) {
+            console.log('No image data found');
+            return fallbackImage;
+        }
+        
+        if (typeof project.image === 'object' && project.image !== null) {
+            if (!project.image.src || typeof project.image.src !== 'string') {
+                console.log('Invalid src property in image object');
+                return fallbackImage;
+            }
+            
+            const src = project.image.src;
+            console.log('Valid image src from object:', src);
+            
+            // Check if it's an Azure blob URL
+            if (src.includes('.blob.core.windows.net')) {
+                return src;
+            }
+            
+            // Check if it's a local upload
+            if (src.includes('uploads/')) {
+                return src.startsWith('/') ? src : '/' + src;
+            }
+            
+            // Check if it's an absolute URL
+            if (src.startsWith('http')) {
+                return src;
+            }
+            
+            return src.startsWith('/') ? src : '/' + src;
+        }
+        
+        if (typeof project.image === 'string') {
+            const src = project.image;
+            
+            if (!src.trim() || src.includes('[object Object]')) {
+                return fallbackImage;
+            }
+            
+            // Check if it's an Azure blob URL
+            if (src.includes('.blob.core.windows.net')) {
+                return src;
+            }
+            
+            // Check if it's a local upload
+            if (src.includes('uploads/')) {
+                return src.startsWith('/') ? src : '/' + src;
+            }
+            
+            // Check if it's an absolute URL
+            if (src.startsWith('http')) {
+                return src;
+            }
+            
+            return src.startsWith('/') ? src : '/' + src;
+        }
+        
+        return fallbackImage;
+    } catch (error) {
+        console.error('Error processing image source:', error);
+        return fallbackImage;
+    }
     };
 
-    // Show loading spinner if loading or no projects
     if (loading) {
         return (
             <section id="portfolio" className="py-32 bg-black text-white">
@@ -198,7 +182,6 @@ export const Portfolio = () => {
         )
     }
 
-    // Handle no projects found
     if (projects.length === 0 || !selectedProject) {
         return (
             <section id="portfolio" className="py-32 bg-black text-white">
@@ -235,7 +218,6 @@ export const Portfolio = () => {
                                         {project.description}
                                     </p>
                                 )}                    
-                            
                             </div>
                         ))}
 
@@ -259,8 +241,8 @@ export const Portfolio = () => {
                         </Link>
                     </div>
 
-                    <div className="lg:col-span-7 relative" ref={carouselRef}>
-                        {/* Project image carousel */}
+                    {/* Updated GIF carousel section - fills the entire right side */}
+                    <div className="lg:col-span-7 relative h-[600px]" ref={carouselRef}>
                         <AnimatePresence initial={false} custom={direction} mode="wait">
                             <motion.div
                                 key={selectedProject.id}
@@ -269,16 +251,19 @@ export const Portfolio = () => {
                                 initial="enter"
                                 animate="center"
                                 exit="exit"
-                                className="w-full h-full"
+                                className="w-full h-full absolute inset-0"
                             >
-                                <div className="relative overflow-hidden rounded-xl group">
-                                    <Image
+                                <div className="relative overflow-hidden rounded-xl group w-full h-full">
+                                    {/* Using regular img tag for GIF support with better animation */}
+                                    <img
                                         src={getValidImageSrc(selectedProject)}
                                         alt={selectedProject.title}
-                                        className="object-cover w-full h-auto rounded-xl shadow-lg transition-all duration-500"
-                                        width={1000}
-                                        height={600}
-                                        priority
+                                        className="object-cover w-full h-full rounded-xl shadow-lg transition-all duration-500"
+                                        style={{ 
+                                            objectFit: 'cover',
+                                            width: '100%',
+                                            height: '100%'
+                                        }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
                                         <div className="p-6 text-white w-full">

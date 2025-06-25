@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, use } from 'react';
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Footer } from '@/components/Footer'
@@ -19,66 +18,80 @@ interface Project {
   liveLink: string
 }
 
-// Helper function to ensure valid image URLs
+// Helper function to ensure valid image URLs (updated for Azure support)
 const getValidImageSrc = (project: Project | null): string => {
-  // Default fallback image - always use absolute path
-  const fallbackImage = '/proj1.png';
+  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
   
   try {
-    // Safety check for missing project
     if (!project) {
       console.log('Missing project data');
       return fallbackImage;
     }
 
-    // Log actual image data for debugging
-    console.log('Image data type:', typeof project.image, 'Value:', project.image);
+    console.log('Processing image for project:', project.title);
+    console.log('Image data:', project.image);
     
-    // Case 1: No image data
     if (!project.image) {
+      console.log('No image data found');
       return fallbackImage;
     }
     
-    // Case 2: Image is a string (direct path)
-    if (typeof project.image === 'string') {
-      // Ensure the string is not empty
-      if (!project.image.trim()) {
-        return fallbackImage;
-      }
-      
-      // Handle relative paths - ensure they start with '/'
-      // Using explicit type guard to avoid 'never' type issue
-      const imgPath: string = project.image;
-      if (!imgPath.startsWith('/') && !imgPath.startsWith('http')) {
-        return '/' + imgPath;
-      }
-      
-      return imgPath;
-    }
-    
-    // Case 3: Image is an object with src property
+    // Handle object with src property
     if (typeof project.image === 'object' && project.image !== null) {
-      // Access the src property safely
-      const src = project.image.src;
-      
-      // Ensure src exists and is a string
-      if (!src || typeof src !== 'string') {
-        console.log('Invalid src property:', src);
+      if (!project.image.src || typeof project.image.src !== 'string') {
+        console.log('Invalid src property in image object');
         return fallbackImage;
       }
       
-      // Handle relative paths - ensure they start with '/'
-      // Using explicit typing to avoid 'never' type issue
-      const imgSrc: string = src;
-      if (!imgSrc.startsWith('/') && !imgSrc.startsWith('http')) {
-        return '/' + imgSrc;
+      const src = project.image.src;
+      console.log('Valid image src from object:', src);
+      
+      // Check if it's an Azure blob URL
+      if (src.includes('.blob.core.windows.net')) {
+        console.log('✅ Azure blob URL detected:', src);
+        return src;
       }
       
-      return imgSrc;
+      // Check if it's a local upload
+      if (src.includes('uploads/')) {
+        return src.startsWith('/') ? src : '/' + src;
+      }
+      
+      // Check if it's an absolute URL
+      if (src.startsWith('http')) {
+        return src;
+      }
+      
+      return src.startsWith('/') ? src : '/' + src;
     }
     
-    // Case 4: Unexpected image format
-    console.log('Unexpected image format:', project.image);
+    // Handle direct string
+    if (typeof project.image === 'string') {
+      const src = project.image;
+      
+      if (!src.trim() || src.includes('[object Object]')) {
+        return fallbackImage;
+      }
+      
+      // Check if it's an Azure blob URL
+      if (src.includes('.blob.core.windows.net')) {
+        console.log('✅ Azure blob URL from string:', src);
+        return src;
+      }
+      
+      // Check if it's a local upload
+      if (src.includes('uploads/')) {
+        return src.startsWith('/') ? src : '/' + src;
+      }
+      
+      // Check if it's an absolute URL
+      if (src.startsWith('http')) {
+        return src;
+      }
+      
+      return src.startsWith('/') ? src : '/' + src;
+    }
+    
     return fallbackImage;
   } catch (error) {
     console.error('Error processing image source:', error);
@@ -98,13 +111,14 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
         const fetchProject = async () => {
             try {
                 console.log(`Fetching project with ID: ${params.id}...`)
-                // Fix: Use absolute URL with proper origin
-                const baseUrl = window.location.origin;
-                const res = await fetch(`${baseUrl}/api/projects/${params.id}`)
+                const res = await fetch(`/api/projects/${params.id}`)
                 const data = await res.json()
+                
+                console.log('Project API response:', data);
                 
                 if (data.success) {
                     console.log('Successfully fetched project:', data.project.title)
+                    console.log('Project image data:', data.project.image);
                     setProject(data.project)
                 } else {
                     console.error('Failed to fetch project:', data.error)
@@ -199,8 +213,8 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                     </div>
 
                     <div className="grid lg:grid-cols-2 gap-12">
-                        {/* Carousel Section */}
-                        <div className="relative h-[500px] overflow-hidden rounded-xl">
+                        {/* Carousel Section - Fixed to use regular img tag */}
+                        <div className="relative h-[500px] overflow-hidden rounded-xl bg-gray-800">
                             <motion.div
                                 key={currentImage}
                                 custom={direction}
@@ -225,11 +239,23 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                                 }}
                                 className="absolute w-full h-full"
                             >
-                                <Image
+                                {/* Replace Next.js Image with regular img tag for Azure support */}
+                                <img
                                     src={getValidImageSrc(project)}
                                     alt={project.title}
-                                    fill
-                                    className="object-cover rounded-xl"
+                                    className="w-full h-full object-cover rounded-xl"
+                                    style={{
+                                        objectFit: 'cover',
+                                        width: '100%',
+                                        height: '100%'
+                                    }}
+                                    onLoad={() => {
+                                        console.log('✅ Project detail image loaded successfully');
+                                    }}
+                                    onError={(e) => {
+                                        console.error('❌ Project detail image failed to load:', e.currentTarget.src);
+                                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+                                    }}
                                 />
                             </motion.div>
 
@@ -270,23 +296,33 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                                 </div>
                             </div>
 
+                            {/* Debug info */}
+                            <div className="mb-6 p-3 bg-gray-800 rounded text-xs">
+                                <p><strong>Image URL:</strong> {getValidImageSrc(project)}</p>
+                                <p><strong>Raw Image Data:</strong> {JSON.stringify(project.image)}</p>
+                            </div>
+
                             <div className="flex gap-4">
-                                <a
-                                    href={project.githubLink}
-                                    className="px-6 py-2 bg-violet-500 rounded-lg hover:bg-violet-600 transition-colors"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    GitHub
-                                </a>
-                                <a
-                                    href={project.liveLink}
-                                    className="px-6 py-2 bg-pink-500 rounded-lg hover:bg-pink-600 transition-colors"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Live Demo
-                                </a>
+                                {project.githubLink && (
+                                    <a
+                                        href={project.githubLink}
+                                        className="px-6 py-2 bg-violet-500 rounded-lg hover:bg-violet-600 transition-colors"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        GitHub
+                                    </a>
+                                )}
+                                {project.liveLink && (
+                                    <a
+                                        href={project.liveLink}
+                                        className="px-6 py-2 bg-pink-500 rounded-lg hover:bg-pink-600 transition-colors"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Live Demo
+                                    </a>
+                                )}
                             </div>
                         </div>
                     </div>

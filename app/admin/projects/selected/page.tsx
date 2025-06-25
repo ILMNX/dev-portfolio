@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Project type definition
 interface Project {
@@ -11,24 +10,35 @@ interface Project {
   title: string;
   year: number;
   description: string;
-  image: { src: string };
+  image: { src: string } | string;
   languages: string[];
   selected?: number;
   selectedOrder?: number;
 }
 
-// Helper function to ensure valid image paths
+// Helper function to ensure valid image paths (updated for Azure support)
 const getValidImagePath = (image: { src: string } | string): string => {
-  // For debugging
   console.log('Processing image in selected projects page:', image);
+  
+  // Default fallback
+  const fallback = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlByb2plY3QgSW1hZ2U8L3RleHQ+PC9zdmc+';
   
   // Handle image object with src property
   if (typeof image === 'object' && image !== null && 'src' in image) {
     const src = image.src;
     console.log('Image src from object:', src);
-    if (!src) return '/proj1.png';
     
-    // Ensure upload paths have leading slash
+    if (!src || src.trim() === '') {
+      return fallback;
+    }
+    
+    // Check if it's an Azure blob URL
+    if (src.includes('.blob.core.windows.net')) {
+      console.log('✅ Azure blob URL detected:', src);
+      return src;
+    }
+    
+    // Check if it's a local upload
     if (src.includes('uploads/')) {
       const result = src.startsWith('/') ? src : '/' + src;
       console.log('Fixed upload path:', result);
@@ -48,7 +58,15 @@ const getValidImagePath = (image: { src: string } | string): string => {
   if (typeof image === 'string') {
     const src = image;
     console.log('Image string path:', src);
-    if (!src) return '/proj1.png';
+    
+    if (!src || src.trim() === '') {
+      return fallback;
+    }
+    
+    // Check if it's an Azure blob URL
+    if (src.includes('.blob.core.windows.net')) {
+      return src;
+    }
     
     if (src.startsWith('http') || src.startsWith('/')) {
       return src;
@@ -58,7 +76,7 @@ const getValidImagePath = (image: { src: string } | string): string => {
   }
   
   // Fallback
-  return '/proj1.png';
+  return fallback;
 };
 
 export default function SelectedProjectsPage() {
@@ -235,10 +253,11 @@ export default function SelectedProjectsPage() {
                     <div className="flex items-center space-x-3">
                       <span className="text-violet-500 font-bold w-6">{index + 1}</span>
                       <div className="w-12 h-12 overflow-hidden rounded-md">
-                        <Image 
+                        <img 
                           src={getValidImagePath(project.image)} 
                           alt={project.title} 
                           className="w-full h-full object-cover"
+                          style={{ objectFit: 'cover' }}
                         />
                       </div>
                       <div>
@@ -270,10 +289,11 @@ export default function SelectedProjectsPage() {
                   className="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   <div className="w-full h-32 mb-3 overflow-hidden rounded-md">
-                    <Image 
+                    <img 
                       src={getValidImagePath(project.image)} 
                       alt={project.title} 
                       className="w-full h-full object-cover"
+                      style={{ objectFit: 'cover' }}
                     />
                   </div>
                   <h3 className="text-lg font-medium mb-1">{project.title}</h3>

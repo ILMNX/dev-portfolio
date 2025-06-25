@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 
 // Project form component to create a new project
 const NewProject = () => {
@@ -18,7 +17,7 @@ const NewProject = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   
-  // Form state
+  // Form state - changed default image to GIF
   const [form, setForm] = useState({
     title: '',
     year: new Date().getFullYear(),
@@ -27,7 +26,7 @@ const NewProject = () => {
     languages: [''],
     githubLink: '',
     liveLink: '',
-    image: '/proj1.png' // Default image path
+    image: '/proj1.gif' // Changed to GIF fallback
   })
 
   useEffect(() => {
@@ -77,19 +76,22 @@ const NewProject = () => {
     }))
   }
 
+  // Updated file change handler for GIF support
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Check file type
-    if (!file.type.includes('image/')) {
-      alert('Please upload an image file')
+    // Check file type - now includes GIF
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload an image file (JPG, PNG, GIF, or WebP)')
       return
     }
 
-    // Check file size (limit to 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size exceeds 5MB limit')
+    // Check file size (limit to 10MB for GIFs, 5MB for others)
+    const maxSize = file.type === 'image/gif' ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert(`File size exceeds ${file.type === 'image/gif' ? '10MB' : '5MB'} limit`)
       return
     }
 
@@ -113,49 +115,34 @@ const NewProject = () => {
     setUploadProgress(0)
 
     try {
-      // Create a FormData object to send the file
-      const formData = new FormData()
-      formData.append('file', uploadedImage)
-      
-      // Create a custom fetch with upload progress
-      const xhr = new XMLHttpRequest()
-      
-      // Set up progress tracking
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100)
-          setUploadProgress(progress)
-        }
-      })
-
-      // Create a promise to handle the upload
-      const uploadPromise = new Promise<string>((resolve, reject) => {
-        xhr.open('POST', '/api/upload', true)
+        const formData = new FormData()
+        formData.append('file', uploadedImage)
         
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const response = JSON.parse(xhr.responseText)
-            resolve(response.imageUrl)
-          } else {
-            reject(new Error('Upload failed'))
-          }
-        }
-        
-        xhr.onerror = () => reject(new Error('Upload failed'))
-        xhr.send(formData)
-      })
+        // Use fetch for Azure upload
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        })
 
-      // Wait for upload to complete and get the URL
-      const imageUrl = await uploadPromise
-      
-      // Return the URL from the server
-      return imageUrl
+        if (!response.ok) {
+            throw new Error('Upload failed')
+        }
+
+        const data = await response.json()
+        
+        if (data.success) {
+            setUploadProgress(100)
+            console.log('File uploaded to Azure:', data.imageUrl)
+            return data.imageUrl // This will be the Azure blob URL
+        } else {
+            throw new Error(data.error || 'Upload failed')
+        }
     } catch (error) {
-      console.error('Error uploading image:', error)
-      alert('Failed to upload image. Please try again.')
-      return form.image
+        console.error('Error uploading image:', error)
+        alert('Failed to upload image. Please try again.')
+        return form.image
     } finally {
-      setIsUploading(false)
+        setIsUploading(false)
     }
   }
 
@@ -360,27 +347,31 @@ const NewProject = () => {
             </div>
             
             <div className="mb-8">
-              <label className="block text-gray-400 mb-2">Project Image</label>
+              <label className="block text-gray-400 mb-2">Project Image/GIF</label>
               <div className="flex flex-col space-y-4">
-                {/* Hidden file input */}
+                {/* Hidden file input - updated accept attribute */}
                 <input
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept="image/*"
+                  accept="image/*,.gif"
                   className="hidden"
                 />
                 
-                {/* Image preview or current image */}
+                {/* Image preview or current image - updated for GIF support */}
                 <div className="relative h-48 border-2 border-dashed rounded-lg overflow-hidden border-gray-700 hover:border-gray-500 transition-colors">
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
-                      <Image 
+                      {/* Use img tag instead of Next.js Image for GIF support */}
+                      <img 
                         src={imagePreview || form.image} 
                         alt="Project thumbnail" 
                         className="w-full h-full object-cover"
-                        width={800}
-                        height={450}
+                        style={{ 
+                          objectFit: 'cover',
+                          width: '100%',
+                          height: '100%'
+                        }}
                       />
                       {isUploading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">
@@ -412,11 +403,12 @@ const NewProject = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                   </svg>
-                  Upload Image
+                  Upload Image/GIF
                 </motion.button>
                 
+                {/* Updated help text */}
                 <p className="text-sm text-gray-400">
-                  Supports JPG, PNG, GIF (Max size: 5MB)
+                  Supports JPG, PNG, GIF, WebP (Max size: 5MB for images, 10MB for GIFs)
                 </p>
               </div>
             </div>

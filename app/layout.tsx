@@ -70,18 +70,18 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {  return (
+}>) {
+  return (
     <html lang="en" dir="ltr">
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/profile.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />        <link rel="canonical" href={siteConfig.url} />
-        {/* Preload critical fonts */}
-        <link rel="preload" href="/fonts/GeistVF.woff" as="font" type="font/woff" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/GeistMonoVF.woff" as="font" type="font/woff" crossOrigin="anonymous" />
-        {/* JSON-LD Structured Data */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="canonical" href={siteConfig.url} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -95,9 +95,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${poppins.className} antialiased`}
-      >
+      <body className={`${poppins.className} antialiased`}>
         <Preloader />
         {children}
       </body>
