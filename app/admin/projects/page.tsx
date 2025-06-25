@@ -111,7 +111,7 @@ const AdminProjects = () => {
         console.log('Projects fetched successfully:', data.projects?.length || 0);
         
         // Debug each project's image data
-        data.projects?.forEach((project: { title: any; image: { src?: any; }; }, index: number) => {
+        data.projects?.forEach((project: Project, index: number) => {
           console.log(`=== PROJECT ${index + 1}: ${project.title} ===`);
           console.log('Image field type:', typeof project.image);
           console.log('Image field value:', project.image);
@@ -218,6 +218,7 @@ const AdminProjects = () => {
               <div key={project?.id || Math.random()} className="bg-gray-900 rounded-xl overflow-hidden hover:bg-gray-800 transition-colors">
                 {/* Project Image */}
                 <div className="relative h-48 overflow-hidden bg-gray-800">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={getValidImageUrl(project?.image)} 
                     alt={project?.title || "Project thumbnail"}
