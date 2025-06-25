@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -119,11 +118,6 @@ export const Portfolio = () => {
                 const src = project.image.src;
                 console.log('Valid image src from object:', src);
                 
-                // Check if it's an Azure blob URL
-                if (src.includes('.blob.core.windows.net')) {
-                    return src;
-                }
-                
                 // Check if it's a local upload
                 if (src.includes('uploads/')) {
                     return src.startsWith('/') ? src : '/' + src;
@@ -142,11 +136,6 @@ export const Portfolio = () => {
                 
                 if (!src.trim() || src.includes('[object Object]')) {
                     return fallbackImage;
-                }
-                
-                // Check if it's an Azure blob URL
-                if (src.includes('.blob.core.windows.net')) {
-                    return src;
                 }
                 
                 // Check if it's a local upload
@@ -221,6 +210,7 @@ export const Portfolio = () => {
                                 className="w-full h-full absolute inset-0"
                             >
                                 <div className="relative w-full h-full group">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                         src={getValidImageSrc(selectedProject)}
                                         alt={selectedProject.title}

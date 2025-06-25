@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjectById, updateProject, deleteProject } from '@/lib/db/projects'
+import { promises as fs } from 'fs'
+import path from 'path'
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -90,8 +92,6 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
       // Delete the image file if it's a local upload
       if (project.image.src.startsWith('/uploads/')) {
         try {
-          const fs = require('fs').promises;
-          const path = require('path');
           const filePath = path.join(process.cwd(), 'public', project.image.src);
           await fs.unlink(filePath);
           console.log('Deleted image file:', filePath);
