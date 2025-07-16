@@ -56,9 +56,9 @@ export async function fixProjectImages(): Promise<boolean> {
     
     for (const row of result.rows) {
       const id = row.id;
-      const title = row.title;
       const imageUrl = row.image_url;
       
+      console.log(`Processing project ${id}: ${row.title}`);
       
       let fixedImageUrl = imageUrl;
       

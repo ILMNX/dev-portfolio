@@ -9,10 +9,6 @@ export async function GET() {
   try {
     const projects = await getAllProjects();
     
-    // Debug each project's image field
-    projects.forEach((project, index) => {
-    });
-    
     return NextResponse.json({ 
       success: true,
       projects,
@@ -51,7 +47,6 @@ export async function POST(request: NextRequest) {
       imageData = { src: '/proj1.gif' };
     }
     
-    
     const projectToCreate = {
       title: data.title,
       year: parseInt(data.year),
@@ -63,7 +58,6 @@ export async function POST(request: NextRequest) {
       liveLink: data.liveLink || ''
     };
     
-    
     const newProject = await createProject(projectToCreate);
     
     if (!newProject) {
@@ -73,7 +67,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-    
     
     return NextResponse.json({ 
       success: true, 
