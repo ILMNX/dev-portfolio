@@ -19,12 +19,11 @@ export async function initializeDatabase() {
       
       if (!columns.includes('selected')) {
         await turso.execute(`ALTER TABLE projects ADD COLUMN selected INTEGER DEFAULT 0`);
-        console.log('Added selected column to projects table');
       }
+      
       
       if (!columns.includes('selected_order')) {
         await turso.execute(`ALTER TABLE projects ADD COLUMN selected_order INTEGER DEFAULT 0`);
-        console.log('Added selected_order column to projects table');
       }
     } catch (alterError) {
       console.error('Error updating table schema:', alterError);
@@ -41,10 +40,8 @@ export async function initializeDatabase() {
         sql: "INSERT INTO admins (username, password_hash) VALUES (?, ?)",
         args: ['admin', passwordHash]
       });
-      console.log('Default admin user created');
     }
     
-    console.log('Database initialized successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);
   }
@@ -53,7 +50,6 @@ export async function initializeDatabase() {
 // Fix project image data in the database
 export async function fixProjectImages(): Promise<boolean> {
   try {
-    console.log('Starting image data repair process...');
     
     // First, get all projects to check their image data
     const result = await turso.execute('SELECT id, title, image_url FROM projects');
@@ -63,14 +59,12 @@ export async function fixProjectImages(): Promise<boolean> {
       const title = row.title;
       const imageUrl = row.image_url;
       
-      console.log(`Checking project ${id} (${title}) - Current image_url:`, imageUrl);
       
       let fixedImageUrl = imageUrl;
       
       // Case 1: No image data
       if (!imageUrl) {
         fixedImageUrl = '/proj1.png';
-        console.log(`Project ${id}: No image, setting default`);
       }
       // Case 2: Image data is a JSON string with src property
       else if (typeof imageUrl === 'string' && (imageUrl.includes('"src"') || imageUrl.startsWith('{'))) {

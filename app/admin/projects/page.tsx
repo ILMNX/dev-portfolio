@@ -21,7 +21,6 @@ interface Project {
 
 // Helper function to get valid image URL (updated for local storage)
 const getValidImageUrl = (image: { src: string } | string): string => {
-  console.log('Processing image in projects list:', image);
   
   // Default fallback
   const fallback = '/proj1.gif';
@@ -29,33 +28,27 @@ const getValidImageUrl = (image: { src: string } | string): string => {
   // Handle image object with src property
   if (typeof image === 'object' && image !== null && 'src' in image) {
     const src = image.src;
-    console.log('Image src from object:', src);
     
     if (!src || src.trim() === '') {
-      console.log('Empty src, using fallback');
       return fallback;
     }
     
     // Check if it's a local upload path
     if (src.includes('/uploads/')) {
-      console.log('✅ Local upload path detected:', src);
       return src;
     }
     
     // If it's a full URL or already has a leading slash, return as is
     if (src.startsWith('http') || src.startsWith('/')) {
-      console.log('Full URL or local path:', src);
       return src;
     }
     
     // Otherwise, add a leading slash
-    console.log('Adding leading slash to:', src);
     return '/' + src;
   }
   
   // Handle direct string path
   if (typeof image === 'string') {
-    console.log('Direct string image path:', image);
     
     if (!image || image.trim() === '') {
       return fallback;
@@ -73,7 +66,6 @@ const getValidImageUrl = (image: { src: string } | string): string => {
     return '/' + image;
   }
   
-  console.log('Fallback to default image');
   return fallback;
 };
 
@@ -101,28 +93,13 @@ const AdminProjects = () => {
 
   const fetchProjects = async () => {
     try {
-      console.log('Fetching projects from API...');
       const response = await fetch('/api/projects')
       const data = await response.json()
       
-      console.log('API Response:', data);
       
       if (data.success) {
-        console.log('Projects fetched successfully:', data.projects?.length || 0);
-        
-        // Debug each project's image data
-        data.projects?.forEach((project: Project, index: number) => {
-          console.log(`=== PROJECT ${index + 1}: ${project.title} ===`);
-          console.log('Image field type:', typeof project.image);
-          console.log('Image field value:', project.image);
-          
-          if (typeof project.image === 'object') {
-            console.log('Image object keys:', Object.keys(project.image));
-            console.log('Image src:', project.image?.src);
-            console.log('Is empty object?', Object.keys(project.image).length === 0);
-          }
-        });
-        
+      
+
         setProjects(data.projects || [])
       } else {
         console.error('Failed to fetch projects:', data.error)
@@ -232,8 +209,7 @@ const AdminProjects = () => {
                       console.log(`✅ Image loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
                     }}
                     onError={(e) => {
-                      console.error(`❌ Image failed to load for ${project.title}:`, e.currentTarget.src);
-                      console.log('Image data:', project.image);
+                     
                       // Set fallback image
                       if (!e.currentTarget.src.includes('proj1.gif')) {
                         e.currentTarget.src = '/proj1.gif';

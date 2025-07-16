@@ -39,9 +39,6 @@ function rowToProject(row: ProjectRow): Project {
   // Make sure image paths are properly formatted
   let imageSrc = row.image_url || '/proj1.png';
 
-  // Add logging to see the raw value from DB and the processed value
-  console.log(`rowToProject ID ${row.id}: DB image_url = "${row.image_url}", Initial imageSrc = "${imageSrc}"`);
-
   // If image path is relative and from uploads directory, ensure it has leading slash
   if (imageSrc && !imageSrc.startsWith('/') && !imageSrc.startsWith('http')) {
     imageSrc = '/' + imageSrc;
