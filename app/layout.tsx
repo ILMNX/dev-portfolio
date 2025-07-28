@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     default: siteConfig.title,
     template: `%s | ${siteConfig.name}`
   },
+  manifest: '/site.webmanifest',
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   authors: [{ name: siteConfig.creator }],
