@@ -1,71 +1,13 @@
+'use client'
+
 import type { Metadata } from "next";
-import {Poppins} from "next/font/google"
+import { Poppins } from "next/font/google"
 import "./globals.css";
-import Preloader from "../components/Preloader";
+import ClientWrapper from '@/components/ClientWrapper'
 import { siteConfig, personStructuredData, websiteStructuredData } from "@/lib/metadata";
 
 const poppins = Poppins({subsets: ["latin"],weight:["100", "200", "300", "400", "700", "800", "900"] });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: siteConfig.title,
-    template: `%s | ${siteConfig.name}`
-  },
-  manifest: '/site.webmanifest',
-  description: siteConfig.description,
-  keywords: siteConfig.keywords,
-  authors: [{ name: siteConfig.creator }],
-  creator: siteConfig.creator,
-  publisher: siteConfig.creator,
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: siteConfig.url,
-    title: siteConfig.title,
-    description: siteConfig.description,
-    siteName: siteConfig.name,
-    images: [
-      {
-        url: siteConfig.ogImage,
-        width: 1200,
-        height: 630,
-        alt: `${siteConfig.name} - Full Stack Developer`,
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: siteConfig.title,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
-    creator: '@gilbert_dev', // Update with actual Twitter handle
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  verification: {
-    google: 'your-google-verification-code', // Add your Google Search Console verification code
-    // yandex: 'your-yandex-verification-code',
-    // bing: 'your-bing-verification-code',
-  },
-};
 
 export default function RootLayout({
   children,
@@ -97,8 +39,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${poppins.className} antialiased`}>
-        <Preloader />
-        {children}
+        <ClientWrapper>
+          {children}
+        </ClientWrapper>
       </body>
     </html>
   );

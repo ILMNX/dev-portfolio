@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { FaReact } from 'react-icons/fa';
 import { SiJavascript } from 'react-icons/si';
 import { SiTypescript } from 'react-icons/si';
@@ -11,10 +11,9 @@ import { FaPython } from "react-icons/fa";
 import { FaFlutter } from "react-icons/fa6";
 import { FaJava } from "react-icons/fa";
 import { FaPhp } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-
-const stackItems =[
+const stackItems = [
     {id:1,name:"React",icon:FaReact, color: '#61DAFB'},
     {id:2,name:"Laravel",icon:FaLaravel, color: '#FF2D20'},
     {id:3,name:"Javascript",icon:SiJavascript, color: '#F7DF1E'},
@@ -25,37 +24,674 @@ const stackItems =[
     {id:8,name:"Flutter",icon:FaFlutter, color: '#02569B'},
     {id:9,name:"Java",icon:FaJava, color: '#FF0000'},
     {id:10,name:"PHP",icon:FaPhp, color: '#777BB4'}
-
 ]
+
+interface Bullet {
+    id: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    speed: number;
+    life: number;
+}
+
+interface FloatingIcon {
+    id: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    stackItem: typeof stackItems[0];
+    hit: boolean;
+    radius: number;
+    hitTime?: number;
+}
+
+interface BackgroundParticle {
+    id: number;
+    left: string;
+    top: string;
+    duration: number;
+    delay: number;
+}
+
 export const Stack = () => {
-    return(
-        <section className='py-16 glass' id='stack'>
-            <div className='max-w-[1200px] mx-auto px-4 text-center'>
-                <h2 className='text-5xl text-center text-gray-200 mb-4'>My Stack</h2>
-                <div className='grid grid-cols-5 grid-rows-2 gap-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-5'>
-                    {stackItems.map((item) => (
-                        <motion.div 
-                            key={item.id}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                            className='flex items-center justify-center flex-col rounded-xl p-2 sm:p-4 cursor-pointer bg-white/5 hover:bg-white/10'
-                        >
-                            <motion.div 
-                                className='mb-2 sm:mb-4 p-2 sm:p-6 rounded-xl'
-                                whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                {React.createElement(item.icon, {
-                                    className: "w-8 h-8 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32",
-                                    style: { color: item.color }
-                                })}
-                            </motion.div>
-                            <p className='text-xs sm:text-sm md:text-base text-gray-400 font-semibold'>{item.name}</p>
-                        </motion.div>
+    const [gameMode, setGameMode] = useState(false);
+    const [showIntro, setShowIntro] = useState(false);
+    const [introStep, setIntroStep] = useState(0);
+    const [score, setScore] = useState(0);
+    const [bullets, setBullets] = useState<Bullet[]>([]);
+    const [floatingIcons, setFloatingIcons] = useState<FloatingIcon[]>([]);
+    const [cannonAngle, setCannonAngle] = useState(0);
+    const [gameArea, setGameArea] = useState({ width: 800, height: 600 });
+    const [hoveredIcon, setHoveredIcon] = useState<number | null>(null);
+    const [gameTime, setGameTime] = useState(0);
+    const [totalHits, setTotalHits] = useState(0);
+    const [isClient, setIsClient] = useState(false);
+    const gameRef = useRef<HTMLDivElement>(null);
+    const animationRef = useRef<number | undefined>(undefined);
+
+    // Fix hydration issue by only rendering random particles on client
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    // Memoize background particles to prevent re-generation
+    const backgroundParticles = useMemo(() => {
+        if (!isClient) return [];
+        
+        return Array.from({ length: 20 }, (_, i) => ({
+            id: i,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: 3 + Math.random() * 2,
+            delay: Math.random() * 2
+        }));
+    }, [isClient]);
+
+    // Generate random position that doesn't overlap with cannon area
+    const generateRandomPosition = () => {
+        const margin = 60;
+        const cannonZone = 100;
+        
+        let x, y;
+        do {
+            x = Math.random() * (gameArea.width - margin * 2) + margin;
+            y = Math.random() * (gameArea.height - margin * 2 - cannonZone) + margin;
+        } while (
+            x > gameArea.width / 2 - cannonZone && 
+            x < gameArea.width / 2 + cannonZone && 
+            y > gameArea.height - cannonZone
+        );
+        
+        return { x, y };
+    };
+
+    // Create a new floating icon
+    const createFloatingIcon = (stackItem: typeof stackItems[0], customPosition?: {x: number, y: number}) => {
+        const position = customPosition || generateRandomPosition();
+        return {
+            id: Date.now() + Math.random(),
+            x: position.x,
+            y: position.y,
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3,
+            stackItem,
+            hit: false,
+            radius: 24
+        };
+    };
+
+    // Initialize floating icons with multiple instances of each tech
+    const initializeGame = useCallback(() => {
+        const icons: FloatingIcon[] = [];
+        
+        // Create 1 instance of each tech stack item for more targets
+        stackItems.forEach(item => {
+            const instances = 1;
+            for (let i = 0; i < instances; i++) {
+                icons.push(createFloatingIcon(item));
+            }
+        });
+        
+        setFloatingIcons(icons);
+        setScore(0);
+        setBullets([]);
+        setGameTime(0);
+        setTotalHits(0);
+    }, [gameArea]);
+
+    // Respawn hit icons after a delay
+    const respawnHitIcons = useCallback(() => {
+        const currentTime = Date.now();
+        const respawnDelay = 2000;
+
+        setFloatingIcons(prev => {
+            const activeIcons = prev.filter(icon => !icon.hit).length;
+
+            return prev.map(icon => {
+                if (icon.hit && icon.hitTime && currentTime - icon.hitTime > respawnDelay && activeIcons < 15) {
+                    return createFloatingIcon(icon.stackItem);
+                }
+                return icon;
+            });
+        });
+    }, []);
+
+    // Periodically add new random icons to keep the game dynamic
+    const addRandomIcons = useCallback(() => {
+        if (Math.random() < 0.3) {
+            const randomStackItem = stackItems[Math.floor(Math.random() * stackItems.length)];
+            const newIcon = createFloatingIcon(randomStackItem);
+            
+            setFloatingIcons(prev => {
+                if (prev.length < 15) {
+                    return [...prev, newIcon];
+                }
+                return prev;
+            });
+        }
+    }, []);
+
+    // Collision detection function
+    const checkCollision = (bullet: Bullet, icon: FloatingIcon): boolean => {
+        if (icon.hit) return false;
+        
+        const dx = bullet.x - (icon.x + 24);
+        const dy = bullet.y - (icon.y + 24);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < (icon.radius + 6);
+    };
+
+    // Game loop with improved logic
+    const gameLoop = useCallback(() => {
+        setGameTime(prev => prev + 1);
+
+        // Update bullets
+        setBullets(prev => {
+            const updatedBullets = prev.map(bullet => {
+                const newX = bullet.x + bullet.vx;
+                const newY = bullet.y + bullet.vy;
+                const newLife = bullet.life - 1;
+
+                if (newX < 0 || newX > gameArea.width || 
+                    newY < 0 || newY > gameArea.height || 
+                    newLife <= 0) {
+                    return null;
+                }
+
+                return {
+                    ...bullet,
+                    x: newX,
+                    y: newY,
+                    life: newLife
+                };
+            }).filter(Boolean) as Bullet[];
+
+            return updatedBullets;
+        });
+
+        // Update floating icons and check collisions
+        setFloatingIcons(prev => {
+            return prev.map(icon => {
+                if (icon.hit) return icon;
+                
+                const hitByBullet = bullets.some(bullet => checkCollision(bullet, icon));
+                
+                if (hitByBullet) {
+                    setBullets(prevBullets => 
+                        prevBullets.filter(bullet => !checkCollision(bullet, icon))
+                    );
+                    
+                    setScore(s => s + 10);
+                    setTotalHits(h => h + 1);
+                    
+                    return { 
+                        ...icon, 
+                        hit: true, 
+                        hitTime: Date.now() 
+                    };
+                }
+                
+                let newX = icon.x + icon.vx;
+                let newY = icon.y + icon.vy;
+                let newVx = icon.vx;
+                let newVy = icon.vy;
+
+                if (newX <= 0 || newX >= gameArea.width - 48) newVx = -newVx;
+                if (newY <= 0 || newY >= gameArea.height - 48) newVy = -newVy;
+
+                return {
+                    ...icon,
+                    x: Math.max(0, Math.min(gameArea.width - 48, newX)),
+                    y: Math.max(0, Math.min(gameArea.height - 48, newY)),
+                    vx: newVx,
+                    vy: newVy
+                };
+            });
+        });
+
+        if (gameTime % 30 === 0) {
+            respawnHitIcons();
+        }
+
+        if (gameTime % 180 === 0) {
+            addRandomIcons();
+        }
+
+        animationRef.current = requestAnimationFrame(gameLoop);
+    }, [gameArea, bullets, gameTime, respawnHitIcons, addRandomIcons]);
+
+    // Start/stop game loop
+    useEffect(() => {
+        if (gameMode) {
+            animationRef.current = requestAnimationFrame(gameLoop);
+        } else {
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+            }
+        }
+
+        return () => {
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+            }
+        };
+    }, [gameMode, gameLoop]);
+
+    // Handle intro sequence
+    const startIntroSequence = () => {
+        setShowIntro(true);
+        setIntroStep(0);
+        
+        setTimeout(() => setIntroStep(1), 1000);
+        setTimeout(() => setIntroStep(2), 2500);
+        setTimeout(() => setIntroStep(3), 4000);
+        setTimeout(() => {
+            setShowIntro(false);
+            setGameMode(true);
+            initializeGame();
+        }, 5500);
+    };
+
+    // Handle shooting
+    const handleShoot = (e: React.MouseEvent) => {
+        if (!gameMode) return;
+        
+        const rect = gameRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const targetX = e.clientX - rect.left;
+        const targetY = e.clientY - rect.top;
+        const cannonX = gameArea.width / 2;
+        const cannonY = gameArea.height - 50;
+
+        const dx = targetX - cannonX;
+        const dy = targetY - cannonY;
+        const angle = Math.atan2(dy, dx);
+        const speed = 12;
+        
+        setCannonAngle(angle);
+
+        const newBullet: Bullet = {
+            id: Date.now() + Math.random(),
+            x: cannonX,
+            y: cannonY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            speed: speed,
+            life: 120
+        };
+
+        setBullets(prev => [...prev, newBullet]);
+    };
+
+    const activeIconsCount = floatingIcons.filter(icon => !icon.hit).length;
+
+    return (
+        <section className='py-16 glass relative overflow-hidden' id='stack'>
+            {/* Fixed background particles - only render on client */}
+            {isClient && (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {backgroundParticles.map((particle) => (
+                        <motion.div
+                            key={particle.id}
+                            className="absolute w-1 h-1 bg-violet-400/30 rounded-full"
+                            animate={{
+                                x: [0, 100, 0],
+                                y: [0, -100, 0],
+                                opacity: [0, 1, 0]
+                            }}
+                            transition={{
+                                duration: particle.duration,
+                                repeat: Infinity,
+                                delay: particle.delay
+                            }}
+                            style={{
+                                left: particle.left,
+                                top: particle.top
+                            }}
+                        />
                     ))}
                 </div>
+            )}
+
+            <div className='max-w-[1200px] mx-auto px-4 text-center relative z-10'>
+                <motion.h2 
+                    className='text-5xl text-center text-gray-200 mb-8'
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                >
+                    My Tech Stack {gameMode && (
+                        <motion.span 
+                            className="text-violet-400"
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{ duration: 0.5, repeat: Infinity }}
+                        >
+                            - Score: {score}
+                        </motion.span>
+                    )}
+                </motion.h2>
+
+                {/* Intro Sequence Overlay */}
+                <AnimatePresence>
+                    {showIntro && (
+                        <motion.div
+                            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <div className="text-center text-white">
+                                <AnimatePresence mode="wait">
+                                    {introStep === 0 && (
+                                        <motion.div
+                                            key="step0"
+                                            initial={{ opacity: 0, scale: 0.5 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 1.5 }}
+                                            className="space-y-4"
+                                        >
+                                            <motion.div 
+                                                className="text-6xl"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            >
+                                                🎯
+                                            </motion.div>
+                                            <h3 className="text-3xl font-bold text-violet-400">Welcome to Tech Hunter!</h3>
+                                        </motion.div>
+                                    )}
+                                    
+                                    {introStep === 1 && (
+                                        <motion.div
+                                            key="step1"
+                                            initial={{ opacity: 0, x: -100 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 100 }}
+                                            className="space-y-4"
+                                        >
+                                            <div className="text-4xl">🎮</div>
+                                            <h3 className="text-2xl font-bold">Your Mission:</h3>
+                                            <p className="text-lg text-gray-300">Hunt down floating tech skills with your precision cannon!</p>
+                                            <p className="text-sm text-violet-300">✨ Unlimited respawning targets!</p>
+                                        </motion.div>
+                                    )}
+                                    
+                                    {introStep === 2 && (
+                                        <motion.div
+                                            key="step2"
+                                            initial={{ opacity: 0, y: 100 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -100 }}
+                                            className="space-y-4"
+                                        >
+                                            <div className="text-4xl">🎯</div>
+                                            <h3 className="text-2xl font-bold">How to Play:</h3>
+                                            <p className="text-lg text-gray-300">Click anywhere to aim and shoot!</p>
+                                            <p className="text-sm text-violet-300">Each hit = 10 points</p>
+                                            <p className="text-xs text-green-300">🔄 Targets respawn automatically!</p>
+                                        </motion.div>
+                                    )}
+                                    
+                                    {introStep === 3 && (
+                                        <motion.div
+                                            key="step3"
+                                            initial={{ opacity: 0, scale: 0 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 2 }}
+                                            className="space-y-4"
+                                        >
+                                            <motion.div 
+                                                className="text-6xl"
+                                                animate={{ scale: [1, 1.5, 1] }}
+                                                transition={{ duration: 0.5, repeat: 2 }}
+                                            >
+                                                🚀
+                                            </motion.div>
+                                            <h3 className="text-3xl font-bold text-green-400">Game Starting...</h3>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {!gameMode ? (
+                    <>
+                        {/* Engaging Text */}
+                        <motion.div 
+                            className="mb-8 space-y-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            <motion.p 
+                                className="text-violet-400 text-lg font-semibold"
+                                animate={{ 
+                                    scale: [1, 1.05, 1],
+                                    textShadow: [
+                                        "0 0 0px #8b5cf6",
+                                        "0 0 10px #8b5cf6",
+                                        "0 0 0px #8b5cf6"
+                                    ]
+                                }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                            >
+                                Click any tech skill below to start the hunt! 
+                            </motion.p>
+                        </motion.div>
+
+                        {/* Enhanced Stack Display with Game Trigger */}
+                        <div className='grid grid-cols-5 grid-rows-2 gap-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-5'>
+                            {stackItems.map((item, index) => (
+                                <motion.div 
+                                    key={item.id}
+                                    initial={{ opacity: 0, y: 50 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onHoverStart={() => setHoveredIcon(item.id)}
+                                    onHoverEnd={() => setHoveredIcon(null)}
+                                    onClick={startIntroSequence}
+                                    className='flex items-center justify-center flex-col rounded-xl p-2 sm:p-4 cursor-pointer bg-white/5 hover:bg-white/15 relative overflow-hidden border border-transparent hover:border-violet-500/50 transition-all duration-300'
+                                >
+                                    {/* Hover glow effect */}
+                                    <motion.div
+                                        className="absolute inset-0 rounded-xl opacity-0"
+                                        animate={{
+                                            opacity: hoveredIcon === item.id ? 0.3 : 0,
+                                            background: `radial-gradient(circle, ${item.color}40, transparent)`
+                                        }}
+                                        transition={{ duration: 0.3 }}
+                                    />
+                                    
+                                    {/* Game hint overlay */}
+                                    <motion.div
+                                        className="absolute inset-0 bg-gradient-to-t from-violet-600/20 to-transparent rounded-xl opacity-0"
+                                        animate={{
+                                            opacity: hoveredIcon === item.id ? 1 : 0
+                                        }}
+                                        transition={{ duration: 0.3 }}
+                                    />
+                                    
+                                    {/* Play icon hint */}
+                                    <motion.div
+                                        className="absolute top-2 right-2 text-violet-400 opacity-0"
+                                        animate={{
+                                            opacity: hoveredIcon === item.id ? 1 : 0,
+                                            scale: hoveredIcon === item.id ? [0.8, 1.2, 1] : 1
+                                        }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        🎮
+                                    </motion.div>
+                                    
+                                    <motion.div 
+                                        className='mb-2 sm:mb-4 p-2 sm:p-6 rounded-xl relative z-10'
+                                        animate={hoveredIcon === item.id ? {
+                                            rotate: [0, -8, 8, -8, 0],
+                                            scale: [1, 1.1, 1]
+                                        } : {}}
+                                        transition={{ duration: 0.6 }}
+                                    >
+                                        {React.createElement(item.icon, {
+                                            className: "w-8 h-8 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 transition-all duration-300",
+                                            style: { 
+                                                color: item.color,
+                                                filter: hoveredIcon === item.id ? 'brightness(1.3) drop-shadow(0 0 15px currentColor)' : 'none'
+                                            }
+                                        })}
+                                    </motion.div>
+                                    <p className='text-xs sm:text-sm md:text-base text-gray-400 font-semibold relative z-10 group-hover:text-white transition-colors'>
+                                        {item.name}
+                                    </p>
+                                    
+                                    {/* Subtle animation hint */}
+                                    <motion.div
+                                        className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-violet-300 opacity-0"
+                                        animate={{
+                                            opacity: hoveredIcon === item.id ? [0, 1, 0] : 0,
+                                            y: hoveredIcon === item.id ? [0, -5, 0] : 0
+                                        }}
+                                        transition={{ duration: 1, repeat: Infinity }}
+                                    >
+                                        Click to play!
+                                    </motion.div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    // Game Mode
+                    <div className="space-y-4">
+                        <div className="flex justify-center space-x-4">
+                            <button
+                                onClick={() => {
+                                    setGameMode(false);
+                                    setScore(0);
+                                }}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-white font-semibold"
+                            >
+                                Exit Game
+                            </button>
+                            <button
+                                onClick={initializeGame}
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white font-semibold"
+                            >
+                                Reset Game
+                            </button>
+                        </div>
+
+                        <div 
+                            ref={gameRef}
+                            className="relative bg-black/20 rounded-xl border border-violet-500/30 mx-auto cursor-crosshair overflow-hidden backdrop-blur-sm"
+                            style={{ width: gameArea.width, height: gameArea.height }}
+                            onClick={handleShoot}
+                        >
+                            {/* Enhanced Game UI */}
+                            <div className="absolute top-4 left-4 text-left bg-black/50 p-3 rounded-lg backdrop-blur-sm">
+                                <p className="text-violet-300 text-sm font-medium">🎯 Tech Hunter</p>
+                                <p className="text-green-400 text-lg font-bold">Score: {score}</p>
+                                <p className="text-blue-400 text-sm">Total Hits: {totalHits}</p>
+                                <p className="text-yellow-400 text-sm">Active Targets: {activeIconsCount}</p>
+                                <p className="text-gray-400 text-xs">Click to aim & shoot!</p>
+                            </div>
+
+                            {/* Floating Icons */}
+                            <AnimatePresence>
+                                {floatingIcons.map((icon) => (
+                                    <motion.div
+                                        key={icon.id}
+                                        className={`absolute w-12 h-12 flex items-center justify-center rounded-lg backdrop-blur-sm border ${
+                                            icon.hit 
+                                                ? 'bg-green-500/50 border-green-400' 
+                                                : 'bg-white/10 border-white/20'
+                                        }`}
+                                        style={{
+                                            left: icon.x,
+                                            top: icon.y,
+                                        }}
+                                        animate={{
+                                            scale: icon.hit ? [1, 1.5, 0] : [0.9, 1.1, 0.9],
+                                            rotate: icon.hit ? [0,180,360] : 0,
+                                            opacity: icon.hit ? [1, 1, 0] : 1
+                                        }}
+                                        transition={{
+                                            duration: icon.hit ? 0.4 : 2,
+                                            repeat: icon.hit ? 0 : Infinity,
+                                            ease : icon.hit ? "easeOut" : "easeInOut"
+                                        }}
+                                    >
+                                        {React.createElement(icon.stackItem.icon, {
+                                            className: "w-8 h-8",
+                                            style: { 
+                                                color: icon.hit ? '#22c55e' : icon.stackItem.color,
+                                                filter: icon.hit ? 'brightness(1.5)' : 'none'
+                                            }
+                                        })}
+                                        
+                                        {/* Hit effect */}
+                                        {icon.hit && (
+                                            <motion.div
+                                                className="absolute inset-0 rounded-lg bg-green-400/20"
+                                                animate={{
+                                                    scale: [1, 2, 0],
+                                                    opacity: [0.8, 0.3, 0]
+                                                }}
+                                                transition={{ duration: 0.6 }}
+                                            />
+                                        )}
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+
+                            {/* Enhanced Bullets with Physics */}
+                            {bullets.map((bullet) => (
+                                <motion.div
+                                    key={bullet.id}
+                                    className="absolute w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
+                                    style={{
+                                        left: bullet.x - 1,
+                                        top: bullet.y - 1,
+                                        boxShadow: '0 0 8px #fbbf24'
+                                    }}
+                                    animate={{
+                                        scale: [0.8, 1.2, 0.8]
+                                    }}
+                                    transition={{
+                                        duration: 0.2,
+                                        repeat: Infinity
+                                    }}
+                                />
+                            ))}
+
+                            {/* Enhanced Cannon */}
+                            <motion.div 
+                                className="absolute bottom-4 left-1/2"
+                                style={{
+                                    transform: `translateX(-50%) rotate(${cannonAngle}rad)`,
+                                    transformOrigin: 'center bottom'
+                                }}
+                                animate={{
+                                    scale: [1, 1.05, 1]
+                                }}
+                                transition={{
+                                    duration: 2,
+                                    repeat: Infinity
+                                }}
+                            >
+                                <div className="w-14 h-10 bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 rounded-t-lg border border-gray-400 shadow-lg"></div>
+                                <div className="w-10 h-6 bg-gradient-to-b from-gray-600 to-gray-800 mx-auto rounded-b border border-gray-500"></div>
+                                <div className="absolute inset-0 bg-violet-400/20 rounded-lg blur-sm"></div>
+                            </motion.div>
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
-    )
-}
+    );
+};
