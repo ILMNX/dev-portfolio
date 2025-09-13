@@ -71,7 +71,7 @@ export const Hero = () => {
     }
 
     return(
-        <section className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200">
+        <section id="hero" className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200">
             {/* Vanta.js background layer */}
             <div ref={vantaRef} id="vanta-bg" className="absolute inset-0 w-full h-full -z-10" />
             {/* Grain blur overlay */}
