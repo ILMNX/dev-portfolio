@@ -77,6 +77,28 @@ export const Stack = () => {
         setIsClient(true);
     }, []);
 
+    // Responsive game area sizing
+    useEffect(() => {
+        const updateGameArea = () => {
+            const container = gameRef.current?.parentElement;
+            if (container) {
+                const containerWidth = container.clientWidth - 32; // Account for padding
+                const maxWidth = Math.min(containerWidth, 800);
+                const aspectRatio = 0.75; // height/width ratio
+                const height = Math.max(maxWidth * aspectRatio, 400);
+                
+                setGameArea({
+                    width: maxWidth,
+                    height: height
+                });
+            }
+        };
+
+        updateGameArea();
+        window.addEventListener('resize', updateGameArea);
+        return () => window.removeEventListener('resize', updateGameArea);
+    }, [gameMode]);
+
     // Memoize background particles to prevent re-generation
     const backgroundParticles = useMemo(() => {
         if (!isClient) return [];
@@ -92,8 +114,8 @@ export const Stack = () => {
 
     // Generate random position that doesn't overlap with cannon area
     const generateRandomPosition = () => {
-        const margin = 60;
-        const cannonZone = 100;
+        const margin = 30; // Reduced margin for mobile
+        const cannonZone = gameArea.width < 600 ? 60 : 100; // Smaller cannon zone on mobile
         
         let x, y;
         do {
@@ -111,25 +133,27 @@ export const Stack = () => {
     // Create a new floating icon
     const createFloatingIcon = (stackItem: typeof stackItems[0], customPosition?: {x: number, y: number}) => {
         const position = customPosition || generateRandomPosition();
+        const isMobile = gameArea.width < 600;
         return {
             id: Date.now() + Math.random(),
             x: position.x,
             y: position.y,
-            vx: (Math.random() - 0.5) * 3,
-            vy: (Math.random() - 0.5) * 3,
+            vx: (Math.random() - 0.5) * (isMobile ? 2 : 3), // Slower movement on mobile
+            vy: (Math.random() - 0.5) * (isMobile ? 2 : 3),
             stackItem,
             hit: false,
-            radius: 24
+            radius: isMobile ? 20 : 24 // Smaller icons on mobile
         };
     };
 
     // Initialize floating icons with multiple instances of each tech
     const initializeGame = useCallback(() => {
         const icons: FloatingIcon[] = [];
+        const isMobile = gameArea.width < 600;
+        const instances = isMobile ? 1 : 1; // Same number of instances
         
-        // Create 1 instance of each tech stack item for more targets
+        // Create instances of each tech stack item
         stackItems.forEach(item => {
-            const instances = 1;
             for (let i = 0; i < instances; i++) {
                 icons.push(createFloatingIcon(item));
             }
@@ -146,40 +170,46 @@ export const Stack = () => {
     const respawnHitIcons = useCallback(() => {
         const currentTime = Date.now();
         const respawnDelay = 2000;
+        const isMobile = gameArea.width < 600;
+        const maxIcons = isMobile ? 10 : 15; // Fewer icons on mobile for better performance
 
         setFloatingIcons(prev => {
             const activeIcons = prev.filter(icon => !icon.hit).length;
 
             return prev.map(icon => {
-                if (icon.hit && icon.hitTime && currentTime - icon.hitTime > respawnDelay && activeIcons < 15) {
+                if (icon.hit && icon.hitTime && currentTime - icon.hitTime > respawnDelay && activeIcons < maxIcons) {
                     return createFloatingIcon(icon.stackItem);
                 }
                 return icon;
             });
         });
-    }, []);
+    }, [gameArea]);
 
     // Periodically add new random icons to keep the game dynamic
     const addRandomIcons = useCallback(() => {
+        const isMobile = gameArea.width < 600;
+        const maxIcons = isMobile ? 10 : 15;
+        
         if (Math.random() < 0.3) {
             const randomStackItem = stackItems[Math.floor(Math.random() * stackItems.length)];
             const newIcon = createFloatingIcon(randomStackItem);
             
             setFloatingIcons(prev => {
-                if (prev.length < 15) {
+                if (prev.length < maxIcons) {
                     return [...prev, newIcon];
                 }
                 return prev;
             });
         }
-    }, []);
+    }, [gameArea]);
 
     // Collision detection function
     const checkCollision = (bullet: Bullet, icon: FloatingIcon): boolean => {
         if (icon.hit) return false;
         
-        const dx = bullet.x - (icon.x + 24);
-        const dy = bullet.y - (icon.y + 24);
+        const iconSize = gameArea.width < 600 ? 20 : 24; // Responsive icon size
+        const dx = bullet.x - (icon.x + iconSize);
+        const dy = bullet.y - (icon.y + iconSize);
         const distance = Math.sqrt(dx * dx + dy * dy);
         return distance < (icon.radius + 6);
     };
@@ -214,6 +244,8 @@ export const Stack = () => {
 
         // Update floating icons and check collisions
         setFloatingIcons(prev => {
+            const iconSize = gameArea.width < 600 ? 40 : 48; // Responsive icon container size
+            
             return prev.map(icon => {
                 if (icon.hit) return icon;
                 
@@ -239,13 +271,13 @@ export const Stack = () => {
                 let newVx = icon.vx;
                 let newVy = icon.vy;
 
-                if (newX <= 0 || newX >= gameArea.width - 48) newVx = -newVx;
-                if (newY <= 0 || newY >= gameArea.height - 48) newVy = -newVy;
+                if (newX <= 0 || newX >= gameArea.width - iconSize) newVx = -newVx;
+                if (newY <= 0 || newY >= gameArea.height - iconSize) newVy = -newVy;
 
                 return {
                     ...icon,
-                    x: Math.max(0, Math.min(gameArea.width - 48, newX)),
-                    y: Math.max(0, Math.min(gameArea.height - 48, newY)),
+                    x: Math.max(0, Math.min(gameArea.width - iconSize, newX)),
+                    y: Math.max(0, Math.min(gameArea.height - iconSize, newY)),
                     vx: newVx,
                     vy: newVy
                 };
@@ -295,22 +327,37 @@ export const Stack = () => {
         }, 5500);
     };
 
-    // Handle shooting
-    const handleShoot = (e: React.MouseEvent) => {
+    // Handle shooting with touch support
+    const handleShoot = (e: React.MouseEvent | React.TouchEvent) => {
         if (!gameMode) return;
         
         const rect = gameRef.current?.getBoundingClientRect();
         if (!rect) return;
 
-        const targetX = e.clientX - rect.left;
-        const targetY = e.clientY - rect.top;
+        let clientX, clientY;
+        if ('touches' in e) {
+            // Touch event
+            if (e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                return;
+            }
+        } else {
+            // Mouse event
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        const targetX = clientX - rect.left;
+        const targetY = clientY - rect.top;
         const cannonX = gameArea.width / 2;
         const cannonY = gameArea.height - 50;
 
         const dx = targetX - cannonX;
         const dy = targetY - cannonY;
         const angle = Math.atan2(dy, dx);
-        const speed = 12;
+        const speed = gameArea.width < 600 ? 8 : 12; // Slower bullets on mobile
         
         setCannonAngle(angle);
 
@@ -328,6 +375,7 @@ export const Stack = () => {
     };
 
     const activeIconsCount = floatingIcons.filter(icon => !icon.hit).length;
+    const isMobile = gameArea.width < 600;
 
     return (
         <section className='py-16 glass relative overflow-hidden' id='stack'>
@@ -359,18 +407,18 @@ export const Stack = () => {
 
             <div className='max-w-[1200px] mx-auto px-4 text-center relative z-10'>
                 <motion.h2 
-                    className='text-5xl text-center text-gray-200 mb-8'
+                    className={`${isMobile ? 'text-3xl' : 'text-5xl'} text-center text-gray-200 mb-8`}
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
                     My Tech Stack {gameMode && (
                         <motion.span 
-                            className="text-violet-400"
+                            className="text-violet-400 block sm:inline mt-2 sm:mt-0"
                             animate={{ scale: [1, 1.1, 1] }}
                             transition={{ duration: 0.5, repeat: Infinity }}
                         >
-                            - Score: {score}
+                            {isMobile ? `Score: ${score}` : `- Score: ${score}`}
                         </motion.span>
                     )}
                 </motion.h2>
@@ -379,12 +427,12 @@ export const Stack = () => {
                 <AnimatePresence>
                     {showIntro && (
                         <motion.div
-                            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center"
+                            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                         >
-                            <div className="text-center text-white">
+                            <div className="text-center text-white max-w-md">
                                 <AnimatePresence mode="wait">
                                     {introStep === 0 && (
                                         <motion.div
@@ -395,13 +443,13 @@ export const Stack = () => {
                                             className="space-y-4"
                                         >
                                             <motion.div 
-                                                className="text-6xl"
+                                                className={`${isMobile ? 'text-4xl' : 'text-6xl'}`}
                                                 animate={{ rotate: 360 }}
                                                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                                             >
                                                 🎯
                                             </motion.div>
-                                            <h3 className="text-3xl font-bold text-violet-400">Welcome to Tech Hunter!</h3>
+                                            <h3 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-violet-400`}>Welcome to Tech Hunter!</h3>
                                         </motion.div>
                                     )}
                                     
@@ -413,9 +461,9 @@ export const Stack = () => {
                                             exit={{ opacity: 0, x: 100 }}
                                             className="space-y-4"
                                         >
-                                            <div className="text-4xl">🎮</div>
-                                            <h3 className="text-2xl font-bold">Your Mission:</h3>
-                                            <p className="text-lg text-gray-300">Hunt down floating tech skills with your precision cannon!</p>
+                                            <div className={`${isMobile ? 'text-3xl' : 'text-4xl'}`}>🎮</div>
+                                            <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>Your Mission:</h3>
+                                            <p className={`${isMobile ? 'text-base' : 'text-lg'} text-gray-300`}>Hunt down floating tech skills with your precision cannon!</p>
                                             <p className="text-sm text-violet-300">✨ Unlimited respawning targets!</p>
                                         </motion.div>
                                     )}
@@ -428,9 +476,11 @@ export const Stack = () => {
                                             exit={{ opacity: 0, y: -100 }}
                                             className="space-y-4"
                                         >
-                                            <div className="text-4xl">🎯</div>
-                                            <h3 className="text-2xl font-bold">How to Play:</h3>
-                                            <p className="text-lg text-gray-300">Click anywhere to aim and shoot!</p>
+                                            <div className={`${isMobile ? 'text-3xl' : 'text-4xl'}`}>🎯</div>
+                                            <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>How to Play:</h3>
+                                            <p className={`${isMobile ? 'text-base' : 'text-lg'} text-gray-300`}>
+                                                {isMobile ? 'Tap anywhere to aim and shoot!' : 'Click anywhere to aim and shoot!'}
+                                            </p>
                                             <p className="text-sm text-violet-300">Each hit = 10 points</p>
                                             <p className="text-xs text-green-300">🔄 Targets respawn automatically!</p>
                                         </motion.div>
@@ -445,13 +495,13 @@ export const Stack = () => {
                                             className="space-y-4"
                                         >
                                             <motion.div 
-                                                className="text-6xl"
+                                                className={`${isMobile ? 'text-4xl' : 'text-6xl'}`}
                                                 animate={{ scale: [1, 1.5, 1] }}
                                                 transition={{ duration: 0.5, repeat: 2 }}
                                             >
                                                 🚀
                                             </motion.div>
-                                            <h3 className="text-3xl font-bold text-green-400">Game Starting...</h3>
+                                            <h3 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-green-400`}>Game Starting...</h3>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -470,7 +520,7 @@ export const Stack = () => {
                             transition={{ delay: 0.3 }}
                         >
                             <motion.p 
-                                className="text-violet-400 text-lg font-semibold"
+                                className={`text-violet-400 ${isMobile ? 'text-base' : 'text-lg'} font-semibold`}
                                 animate={{ 
                                     scale: [1, 1.05, 1],
                                     textShadow: [
@@ -481,12 +531,12 @@ export const Stack = () => {
                                 }}
                                 transition={{ duration: 2, repeat: Infinity }}
                             >
-                                Click any tech skill below to start the hunt! 
+                                {isMobile ? 'Tap any tech skill below to start the hunt!' : 'Click any tech skill below to start the hunt!'}
                             </motion.p>
                         </motion.div>
 
                         {/* Enhanced Stack Display with Game Trigger */}
-                        <div className='grid grid-cols-5 grid-rows-2 gap-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-5'>
+                        <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
                             {stackItems.map((item, index) => (
                                 <motion.div 
                                     key={item.id}
@@ -520,7 +570,7 @@ export const Stack = () => {
                                     
                                     {/* Play icon hint */}
                                     <motion.div
-                                        className="absolute top-2 right-2 text-violet-400 opacity-0"
+                                        className="absolute top-1 right-1 sm:top-2 sm:right-2 text-violet-400 opacity-0 text-sm"
                                         animate={{
                                             opacity: hoveredIcon === item.id ? 1 : 0,
                                             scale: hoveredIcon === item.id ? [0.8, 1.2, 1] : 1
@@ -531,7 +581,7 @@ export const Stack = () => {
                                     </motion.div>
                                     
                                     <motion.div 
-                                        className='mb-2 sm:mb-4 p-2 sm:p-6 rounded-xl relative z-10'
+                                        className='mb-1 sm:mb-2 p-1 sm:p-2 rounded-xl relative z-10'
                                         animate={hoveredIcon === item.id ? {
                                             rotate: [0, -8, 8, -8, 0],
                                             scale: [1, 1.1, 1]
@@ -539,27 +589,27 @@ export const Stack = () => {
                                         transition={{ duration: 0.6 }}
                                     >
                                         {React.createElement(item.icon, {
-                                            className: "w-8 h-8 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 transition-all duration-300",
+                                            className: `${isMobile ? 'w-8 h-8' : 'w-12 h-12'} sm:w-16 sm:h-16 transition-all duration-300`,
                                             style: { 
                                                 color: item.color,
                                                 filter: hoveredIcon === item.id ? 'brightness(1.3) drop-shadow(0 0 15px currentColor)' : 'none'
                                             }
                                         })}
                                     </motion.div>
-                                    <p className='text-xs sm:text-sm md:text-base text-gray-400 font-semibold relative z-10 group-hover:text-white transition-colors'>
+                                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 font-semibold relative z-10 group-hover:text-white transition-colors text-center`}>
                                         {item.name}
                                     </p>
                                     
                                     {/* Subtle animation hint */}
                                     <motion.div
-                                        className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-violet-300 opacity-0"
+                                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-xs text-violet-300 opacity-0"
                                         animate={{
                                             opacity: hoveredIcon === item.id ? [0, 1, 0] : 0,
                                             y: hoveredIcon === item.id ? [0, -5, 0] : 0
                                         }}
                                         transition={{ duration: 1, repeat: Infinity }}
                                     >
-                                        Click to play!
+                                        {isMobile ? 'Tap to play!' : 'Click to play!'}
                                     </motion.div>
                                 </motion.div>
                             ))}
@@ -568,19 +618,19 @@ export const Stack = () => {
                 ) : (
                     // Game Mode
                     <div className="space-y-4">
-                        <div className="flex justify-center space-x-4">
+                        <div className="flex justify-center space-x-2 sm:space-x-4">
                             <button
                                 onClick={() => {
                                     setGameMode(false);
                                     setScore(0);
                                 }}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-white font-semibold"
+                                className={`${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2'} bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-white font-semibold`}
                             >
                                 Exit Game
                             </button>
                             <button
                                 onClick={initializeGame}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white font-semibold"
+                                className={`${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2'} bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-white font-semibold`}
                             >
                                 Reset Game
                             </button>
@@ -588,75 +638,87 @@ export const Stack = () => {
 
                         <div 
                             ref={gameRef}
-                            className="relative bg-black/20 rounded-xl border border-violet-500/30 mx-auto cursor-crosshair overflow-hidden backdrop-blur-sm"
-                            style={{ width: gameArea.width, height: gameArea.height }}
+                            className="relative bg-black/20 rounded-xl border border-violet-500/30 mx-auto cursor-crosshair overflow-hidden backdrop-blur-sm w-full"
+                            style={{ 
+                                width: gameArea.width, 
+                                height: gameArea.height,
+                                maxWidth: '100%'
+                            }}
                             onClick={handleShoot}
+                            onTouchStart={handleShoot}
                         >
                             {/* Enhanced Game UI */}
-                            <div className="absolute top-4 left-4 text-left bg-black/50 p-3 rounded-lg backdrop-blur-sm">
-                                <p className="text-violet-300 text-sm font-medium">🎯 Tech Hunter</p>
-                                <p className="text-green-400 text-lg font-bold">Score: {score}</p>
-                                <p className="text-blue-400 text-sm">Total Hits: {totalHits}</p>
-                                <p className="text-yellow-400 text-sm">Active Targets: {activeIconsCount}</p>
-                                <p className="text-gray-400 text-xs">Click to aim & shoot!</p>
+                            <div className={`absolute top-2 left-2 sm:top-4 sm:left-4 text-left bg-black/50 ${isMobile ? 'p-2' : 'p-3'} rounded-lg backdrop-blur-sm`}>
+                                <p className={`text-violet-300 ${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>🎯 Tech Hunter</p>
+                                <p className={`text-green-400 ${isMobile ? 'text-base' : 'text-lg'} font-bold`}>Score: {score}</p>
+                                <p className={`text-blue-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Hits: {totalHits}</p>
+                                <p className={`text-yellow-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Active: {activeIconsCount}</p>
+                                <p className={`text-gray-400 text-xs`}>
+                                    {isMobile ? 'Tap to shoot!' : 'Click to shoot!'}
+                                </p>
                             </div>
 
                             {/* Floating Icons */}
                             <AnimatePresence>
-                                {floatingIcons.map((icon) => (
-                                    <motion.div
-                                        key={icon.id}
-                                        className={`absolute w-12 h-12 flex items-center justify-center rounded-lg backdrop-blur-sm border ${
-                                            icon.hit 
-                                                ? 'bg-green-500/50 border-green-400' 
-                                                : 'bg-white/10 border-white/20'
-                                        }`}
-                                        style={{
-                                            left: icon.x,
-                                            top: icon.y,
-                                        }}
-                                        animate={{
-                                            scale: icon.hit ? [1, 1.5, 0] : [0.9, 1.1, 0.9],
-                                            rotate: icon.hit ? [0,180,360] : 0,
-                                            opacity: icon.hit ? [1, 1, 0] : 1
-                                        }}
-                                        transition={{
-                                            duration: icon.hit ? 0.4 : 2,
-                                            repeat: icon.hit ? 0 : Infinity,
-                                            ease : icon.hit ? "easeOut" : "easeInOut"
-                                        }}
-                                    >
-                                        {React.createElement(icon.stackItem.icon, {
-                                            className: "w-8 h-8",
-                                            style: { 
-                                                color: icon.hit ? '#22c55e' : icon.stackItem.color,
-                                                filter: icon.hit ? 'brightness(1.5)' : 'none'
-                                            }
-                                        })}
-                                        
-                                        {/* Hit effect */}
-                                        {icon.hit && (
-                                            <motion.div
-                                                className="absolute inset-0 rounded-lg bg-green-400/20"
-                                                animate={{
-                                                    scale: [1, 2, 0],
-                                                    opacity: [0.8, 0.3, 0]
-                                                }}
-                                                transition={{ duration: 0.6 }}
-                                            />
-                                        )}
-                                    </motion.div>
-                                ))}
+                                {floatingIcons.map((icon) => {
+                                    const iconSize = isMobile ? 'w-10 h-10' : 'w-12 h-12';
+                                    const innerIconSize = isMobile ? 'w-6 h-6' : 'w-8 h-8';
+                                    
+                                    return (
+                                        <motion.div
+                                            key={icon.id}
+                                            className={`absolute ${iconSize} flex items-center justify-center rounded-lg backdrop-blur-sm border ${
+                                                icon.hit 
+                                                    ? 'bg-green-500/50 border-green-400' 
+                                                    : 'bg-white/10 border-white/20'
+                                            }`}
+                                            style={{
+                                                left: icon.x,
+                                                top: icon.y,
+                                            }}
+                                            animate={{
+                                                scale: icon.hit ? [1, 1.5, 0] : [0.9, 1.1, 0.9],
+                                                rotate: icon.hit ? [0,180,360] : 0,
+                                                opacity: icon.hit ? [1, 1, 0] : 1
+                                            }}
+                                            transition={{
+                                                duration: icon.hit ? 0.4 : 2,
+                                                repeat: icon.hit ? 0 : Infinity,
+                                                ease : icon.hit ? "easeOut" : "easeInOut"
+                                            }}
+                                        >
+                                            {React.createElement(icon.stackItem.icon, {
+                                                className: innerIconSize,
+                                                style: { 
+                                                    color: icon.hit ? '#22c55e' : icon.stackItem.color,
+                                                    filter: icon.hit ? 'brightness(1.5)' : 'none'
+                                                }
+                                            })}
+                                            
+                                            {/* Hit effect */}
+                                            {icon.hit && (
+                                                <motion.div
+                                                    className="absolute inset-0 rounded-lg bg-green-400/20"
+                                                    animate={{
+                                                        scale: [1, 2, 0],
+                                                        opacity: [0.8, 0.3, 0]
+                                                    }}
+                                                    transition={{ duration: 0.6 }}
+                                                />
+                                            )}
+                                        </motion.div>
+                                    );
+                                })}
                             </AnimatePresence>
 
                             {/* Enhanced Bullets with Physics */}
                             {bullets.map((bullet) => (
                                 <motion.div
                                     key={bullet.id}
-                                    className="absolute w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
+                                    className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full`}
                                     style={{
-                                        left: bullet.x - 1,
-                                        top: bullet.y - 1,
+                                        left: bullet.x - (isMobile ? 0.75 : 1),
+                                        top: bullet.y - (isMobile ? 0.75 : 1),
                                         boxShadow: '0 0 8px #fbbf24'
                                     }}
                                     animate={{
@@ -671,7 +733,7 @@ export const Stack = () => {
 
                             {/* Enhanced Cannon */}
                             <motion.div 
-                                className="absolute bottom-4 left-1/2"
+                                className="absolute bottom-2 sm:bottom-4 left-1/2"
                                 style={{
                                     transform: `translateX(-50%) rotate(${cannonAngle}rad)`,
                                     transformOrigin: 'center bottom'
@@ -684,8 +746,8 @@ export const Stack = () => {
                                     repeat: Infinity
                                 }}
                             >
-                                <div className="w-14 h-10 bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 rounded-t-lg border border-gray-400 shadow-lg"></div>
-                                <div className="w-10 h-6 bg-gradient-to-b from-gray-600 to-gray-800 mx-auto rounded-b border border-gray-500"></div>
+                                <div className={`${isMobile ? 'w-10 h-7' : 'w-14 h-10'} bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 rounded-t-lg border border-gray-400 shadow-lg`}></div>
+                                <div className={`${isMobile ? 'w-7 h-4' : 'w-10 h-6'} bg-gradient-to-b from-gray-600 to-gray-800 mx-auto rounded-b border border-gray-500`}></div>
                                 <div className="absolute inset-0 bg-violet-400/20 rounded-lg blur-sm"></div>
                             </motion.div>
                         </div>
