@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { Fragment, useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { Dialog, Transition } from "@headlessui/react"
 
-// Project type definition
+// Types
 interface Project {
     id: number
     year: number
@@ -18,33 +19,79 @@ interface Project {
     category?: string
 }
 
-export const Portfolio = () => {
+// Theme constants
+const THEME = {
+    colors: {
+        primary: '#222046',
+        secondary: '#7875A2',
+        accent: '#8B5CF6',
+        text: '#FFFFFF',
+        textSecondary: 'rgba(255, 255, 255, 0.8)',
+    },
+    spacing: {
+        xs: '0.5rem',
+        sm: '1rem', 
+        md: '1.5rem',
+        lg: '2rem',
+        xl: '3rem',
+    },
+    borderRadius: {
+        sm: '0.5rem',
+        md: '1rem',
+        lg: '1.5rem',
+    }
+}
+
+// Animation variants
+const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+}
+
+const slideInLeft = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
+}
+
+// Custom hooks
+const useResponsive = () => {
+    const [isMobile, setIsMobile] = useState(false)
+    const [isTablet, setIsTablet] = useState(false)
+
+    useEffect(() => {
+        const checkDevice = () => {
+            setIsMobile(window.innerWidth < 768)
+            setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
+        }
+        
+        checkDevice()
+        window.addEventListener('resize', checkDevice)
+        return () => window.removeEventListener('resize', checkDevice)
+    }, [])
+
+    return { isMobile, isTablet, isDesktop: !isMobile && !isTablet }
+}
+
+const useProjects = () => {
     const [projects, setProjects] = useState<Project[]>([])
-    const [selectedProject, setSelectedProject] = useState<Project | null>(null)
     const [loading, setLoading] = useState(true)
-    const [activeCategory, setActiveCategory] = useState<string | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
-    // Category options (can be null/empty for now)
-    const categories = ['Web', 'Machine Learning & AI', 'Data', 'Mobile', 'Others']
-
-    // Fetch projects from the API
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                console.log('Portfolio component: Fetching selected projects from API...')
-                const baseUrl = window.location.origin;
+                const baseUrl = window.location.origin
                 const res = await fetch(`${baseUrl}/api/projects/selected`)
                 const data = await res.json()
                 
                 if (data.success && data.projects?.length > 0) {
-                    console.log('Portfolio component: Successfully fetched selected projects:', data.projects.length)
                     setProjects(data.projects)
-                    setSelectedProject(data.projects[0])
                 } else {
-                    console.error('Portfolio component: Failed to fetch selected projects or no projects found:', data)
+                    setError('No projects found')
                 }
-            } catch (error) {
-                console.error('Portfolio component: Error fetching selected projects:', error)
+            } catch (err) {
+                setError('Failed to fetch projects')
+                console.error('Error fetching projects:', err)
             } finally {
                 setLoading(false)
             }
@@ -53,308 +100,544 @@ export const Portfolio = () => {
         fetchProjects()
     }, [])
 
-    const getValidImageSrc = (project: Project | null): string => {
-        const fallbackImage = '/proj1.gif';
+    return { projects, loading, error }
+}
+
+// Sub-components
+const ProjectCard: React.FC<{
+    project: Project
+    isSelected: boolean
+    onClick: () => void
+    isMobile: boolean
+}> = ({ project, isSelected, onClick, isMobile }) => (
+    <motion.div
+        onClick={onClick}
+        className={`
+            p-4 md:p-6 rounded-xl cursor-pointer transition-all duration-300 select-none
+            ${isSelected 
+                ? 'bg-[#7875A2] shadow-lg transform scale-[1.02]' 
+                : 'bg-gray-700/60 hover:bg-gray-600/60'
+            }
+            ${isMobile ? 'min-h-[120px]' : 'min-h-[140px]'}
+        `}
+        variants={slideInLeft}
+        whileHover={{ y: -2 }}
+        whileTap={{ scale: 0.98 }}
+    >
+        <h3 className={`font-bold text-white mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+            {project.title}
+        </h3>
+        <p className={`text-white/80 leading-relaxed mb-3 ${isMobile ? 'text-sm' : 'text-sm'} line-clamp-2`}>
+            {project.description}
+        </p>
+        
+        {project.languages && project.languages.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+                {project.languages.slice(0, isMobile ? 2 : 3).map((lang, idx) => (
+                    <span 
+                        key={idx} 
+                        className={`px-2.5 py-1 rounded-lg text-white ${isMobile ? 'text-xs' : 'text-sm'}`}
+                        style={{ background: THEME.colors.primary }}
+                    >
+                        {lang}
+                    </span>
+                ))}
+                {project.languages.length > (isMobile ? 2 : 3) && (
+                    <span 
+                        className={`px-2.5 py-1 rounded-lg text-white ${isMobile ? 'text-xs' : 'text-sm'}`}
+                        style={{ background: THEME.colors.primary }}
+                    >
+                        +{project.languages.length - (isMobile ? 2 : 3)}
+                    </span>
+                )}
+            </div>
+        )}
+    </motion.div>
+)
+
+const CategoryFilter: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
+    const categories = ['Web', 'ML & AI', 'Data', 'Mobile', 'Others']
+    
+    return (
+        <motion.div 
+            className="p-3 md:p-4 rounded-xl bg-gray-700/60 mb-4 md:mb-6"
+            variants={fadeInUp}
+        >
+            <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+                {categories.map((category) => (
+                    <button
+                        key={category}
+                        disabled
+                        className={`
+                            px-3 md:px-4 py-2 rounded-lg transition-all duration-300 
+                            ${isMobile ? 'text-sm' : 'text-base'}
+                            opacity-50 cursor-not-allowed text-white hover:bg-white/10
+                        `}
+                    >
+                        {category}
+                    </button>
+                ))}
+            </div>
+            {isMobile && (
+                <p className="text-center text-xs text-white/60 mt-2">Categories coming soon</p>
+            )}
+        </motion.div>
+    )
+}
+
+const ProjectDisplay: React.FC<{
+    project: Project
+    showDetails: boolean
+    onToggleDetails: () => void
+    onMaximize: () => void
+    getValidImageSrc: (project: Project) => string
+    isMobile: boolean
+}> = ({ project, showDetails, onToggleDetails, onMaximize, getValidImageSrc, isMobile }) => (
+    <div className={`bg-gray-700/60 rounded-xl overflow-hidden relative ${isMobile ? 'h-[60vh]' : 'h-[500px]'}`}>
+        {/* Control Buttons */}
+        <div className="absolute top-2 md:top-4 right-2 md:right-4 z-20 flex gap-2">
+            <button
+                onClick={onToggleDetails}
+                className={`
+                    bg-black/60 hover:bg-black/80 text-white rounded-lg shadow-lg 
+                    transition-all duration-200 font-medium
+                    ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'}
+                `}
+            >
+                {showDetails ? "Hide" : "Show"}
+            </button>
+            <button
+                onClick={onMaximize}
+                className={`
+                    bg-violet-600/80 hover:bg-violet-700 text-white rounded-lg shadow-lg 
+                    transition-all duration-200 font-medium
+                    ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'}
+                `}
+            >
+                {isMobile ? "Full" : "Maximize"}
+            </button>
+        </div>
+
+        <div className="h-full w-full relative overflow-hidden">
+            <img
+                src={getValidImageSrc(project)}
+                alt={project.title}
+                className="w-full h-full object-cover transition-all duration-500"
+                loading="lazy"
+            />
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+            
+            <AnimatePresence>
+                {showDetails && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.3 }}
+                        className={`absolute bottom-0 left-0 right-0 ${isMobile ? 'p-4' : 'p-6 md:p-8'}`}
+                    >
+                        <div className="space-y-3 md:space-y-4 text-left max-w-4xl">
+                            <div>
+                                <h3 className={`font-bold text-white mb-2 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+                                    {project.title}
+                                </h3>
+                                <p className={`text-white/90 leading-relaxed ${isMobile ? 'text-xs' : 'text-xs'} max-w-2xl`}>
+                                    {project.details || project.description}
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-3 md:gap-4">
+                                {project.languages && project.languages.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {project.languages.map((lang, idx) => (
+                                            <span 
+                                                key={idx} 
+                                                className={`px-2.5 py-1 rounded-lg text-white backdrop-blur-sm ${isMobile ? 'text-xs' : 'text-xs'}`}
+                                                style={{ background: 'rgba(34, 32, 70, 0.8)' }}
+                                            >
+                                                {lang}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="flex gap-2 md:gap-3">
+                                    {project.liveLink && (
+                                        <Link href={project.liveLink} target="_blank">
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className={`
+                                                    bg-violet-500/90 backdrop-blur-sm text-white rounded-lg 
+                                                    font-semibold hover:bg-violet-600 transition-colors
+                                                    ${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2 text-base'}
+                                                `}
+                                            >
+                                                {isMobile ? 'Demo' : 'Live Demo'}
+                                            </motion.button>
+                                        </Link>
+                                    )}
+                                    {project.githubLink && (
+                                        <Link href={project.githubLink} target="_blank">
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className={`
+                                                    bg-black/50 backdrop-blur-sm border-2 border-white/30 text-white rounded-lg 
+                                                    font-semibold hover:bg-black/70 hover:border-white/50 transition-colors
+                                                    ${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2 text-base'}
+                                                `}
+                                            >
+                                                {isMobile ? 'Code' : 'View Code'}
+                                            </motion.button>
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    </div>
+)
+
+const ProjectModal: React.FC<{
+    project: Project
+    isOpen: boolean
+    onClose: () => void
+    getValidImageSrc: (project: Project) => string
+    isMobile: boolean
+}> = ({ project, isOpen, onClose, getValidImageSrc, isMobile }) => (
+    <Transition show={isOpen} as={Fragment}>
+        <Dialog as="div" className="fixed inset-0 z-50 overflow-y-auto" onClose={onClose}>
+            {/* Full Screen Modal */}
+            <div className="min-h-screen">
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm" />
+                </Transition.Child>
+                
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0 scale-95"
+                    enterTo="opacity-100 scale-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100 scale-100"
+                    leaveTo="opacity-0 scale-95"
+                >
+                    <div className="fixed inset-0 flex flex-col">
+                        {/* Close Button */}
+                        <button
+                            onClick={onClose}
+                            className={`
+                                absolute top-4 right-4 z-10 
+                                bg-black/80 hover:bg-black/90 text-white rounded-xl shadow-lg 
+                                transition-all duration-200 font-semibold
+                                ${isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base'}
+                            `}
+                        >
+                            ✕ Close
+                        </button>
+                        
+                        {/* Full Project Image - Takes most of the screen */}
+                        <div className={`flex-1 relative ${isMobile ? 'min-h-[50vh]' : 'min-h-[70vh]'}`}>
+                            <img
+                                src={getValidImageSrc(project)}
+                                alt={project.title}
+                                className="w-full h-full object-contain bg-gray-900"
+                            />
+                            
+                            {/* Gradient overlay for text readability */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent h-32" />
+                        </div>
+                        
+                        {/* Compact Info Section */}
+                        <div className={`
+                            bg-gray-900/95 backdrop-blur-md border-t border-white/10
+                            ${isMobile ? 'p-4' : 'p-6'}
+                        `}>
+                            <div className="max-w-7xl mx-auto">
+                                <div className={`
+                                    flex flex-col gap-4
+                                    ${isMobile ? '' : 'lg:flex-row lg:items-center lg:justify-between'}
+                                `}>
+                                    {/* Project Info */}
+                                    <div className="flex-1">
+                                        <h2 className={`
+                                            font-bold text-white mb-2
+                                            ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}
+                                        `}>
+                                            {project.title}
+                                        </h2>
+                                        
+                                        <p className={`
+                                            text-white/80 leading-relaxed mb-3
+                                            ${isMobile ? 'text-sm' : 'text-base lg:text-sm'}
+                                            ${isMobile ? 'line-clamp-2' : 'line-clamp-1 lg:line-clamp-2'}
+                                        `}>
+                                            {project.details || project.description}
+                                        </p>
+                                        
+                                        {/* Technologies - Compact display */}
+                                        {project.languages && project.languages.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {project.languages.slice(0, isMobile ? 3 : 6).map((lang, idx) => (
+                                                    <span 
+                                                        key={idx} 
+                                                        className={`
+                                                            px-2.5 py-1 rounded-lg text-white/90 bg-white/10 backdrop-blur-sm
+                                                            ${isMobile ? 'text-xs' : 'text-sm'}
+                                                        `}
+                                                    >
+                                                        {lang}
+                                                    </span>
+                                                ))}
+                                                {project.languages.length > (isMobile ? 3 : 6) && (
+                                                    <span className={`
+                                                        px-2.5 py-1 rounded-lg text-violet-300 bg-violet-500/20 backdrop-blur-sm
+                                                        ${isMobile ? 'text-xs' : 'text-sm'}
+                                                    `}>
+                                                        +{project.languages.length - (isMobile ? 3 : 6)} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Action Buttons */}
+                                    <div className={`
+                                        flex gap-3 
+                                        ${isMobile ? 'flex-col' : 'lg:flex-col xl:flex-row'}
+                                    `}>
+                                        {project.liveLink && (
+                                            <Link href={project.liveLink} target="_blank">
+                                                <button className={`
+                                                    bg-violet-500/90 hover:bg-violet-600 text-white rounded-lg font-semibold 
+                                                    transition-colors w-full lg:w-auto
+                                                    ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-3 text-base'}
+                                                `}>
+                                                    {isMobile ? 'Demo' : 'Live Demo'}
+                                                </button>
+                                            </Link>
+                                        )}
+                                        {project.githubLink && (
+                                            <Link href={project.githubLink} target="_blank">
+                                                <button className={`
+                                                    bg-white/10 hover:bg-white/20 border-2 border-white/30 hover:border-white/50 
+                                                    text-white rounded-lg font-semibold transition-colors w-full lg:w-auto
+                                                    ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-3 text-base'}
+                                                `}>
+                                                    {isMobile ? 'Code' : 'View Code'}
+                                                </button>
+                                            </Link>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Transition.Child>
+            </div>
+        </Dialog>
+    </Transition>
+)
+
+// Main Component
+export const Portfolio = () => {
+    const { projects, loading, error } = useProjects()
+    const { isMobile, isTablet } = useResponsive()
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+    const [showDetails, setShowDetails] = useState(!isMobile)
+    const [showModal, setShowModal] = useState(false)
+
+    // Set first project as selected when projects load
+    useEffect(() => {
+        if (projects.length > 0 && !selectedProject) {
+            setSelectedProject(projects[0])
+        }
+    }, [projects, selectedProject])
+
+    // Auto-hide details on mobile initially
+    useEffect(() => {
+        if (isMobile) {
+            setShowDetails(false)
+        }
+    }, [isMobile])
+
+    const getValidImageSrc = useCallback((project: Project): string => {
+        const fallbackImage = '/proj1.gif'
         
         try {
-            if (!project) {
-                console.log('Missing project data');
-                return fallbackImage;
-            }
-
-            console.log('Portfolio component - Processing image for project:', project.title);
+            if (!project?.image) return fallbackImage
             
-            if (!project.image) {
-                console.log('No image data found');
-                return fallbackImage;
-            }
-            
-            if (typeof project.image === 'object' && project.image !== null) {
-                if (!project.image.src || typeof project.image.src !== 'string') {
-                    console.log('Invalid src property in image object');
-                    return fallbackImage;
-                }
-                
-                const src = project.image.src;
-                console.log('Valid image src from object:', src);
-                
-                if (src.includes('uploads/')) {
-                    return src.startsWith('/') ? src : '/' + src;
-                }
-                
-                if (src.startsWith('http')) {
-                    return src;
-                }
-                
-                return src.startsWith('/') ? src : '/' + src;
+            if (typeof project.image === 'object' && project.image?.src) {
+                const src = project.image.src
+                return src.includes('uploads/') 
+                    ? (src.startsWith('/') ? src : '/' + src)
+                    : src
             }
             
             if (typeof project.image === 'string') {
-                const src = project.image;
+                const src = project.image.trim()
+                if (!src || src.includes('[object Object]')) return fallbackImage
                 
-                if (!src.trim() || src.includes('[object Object]')) {
-                    return fallbackImage;
-                }
-                
-                if (src.includes('uploads/')) {
-                    return src.startsWith('/') ? src : '/' + src;
-                }
-                
-                if (src.startsWith('http')) {
-                    return src;
-                }
-                
-                return src.startsWith('/') ? src : '/' + src;
+                return src.includes('uploads/') 
+                    ? (src.startsWith('/') ? src : '/' + src)
+                    : src
             }
             
-            return fallbackImage;
-        } catch (error) {
-            console.error('Error processing image source:', error);
-            return fallbackImage;
+            return fallbackImage
+        } catch {
+            return fallbackImage
         }
-    };
-
-    // Filter projects based on active category
-    const filteredProjects = activeCategory && activeCategory !== 'Others' 
-        ? projects.filter(project => project.category === activeCategory)
-        : projects;
+    }, [])
 
     if (loading) {
         return (
-            <section id="portfolio" className="py-32 min-h-screen flex items-center justify-center" 
-                     style={{ background: '#222046' }}>
-                <div className="text-center">
-                    <h2 className="text-6xl font-bold mb-10 text-white">Selected <span className="text-gray-200">Projects</span></h2>
-                    <div className="flex justify-center items-center py-16">
-                        <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
+            <section 
+                id="portfolio" 
+                className="min-h-screen flex items-center justify-center text-white"
+                style={{ background: THEME.colors.primary }}
+            >
+                <div className="text-center px-4">
+                    <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-6xl'}`}>
+                        Selected <span className="text-gray-200">Projects</span>
+                    </h2>
+                    <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
                 </div>
             </section>
         )
     }
 
-    if (projects.length === 0 || !selectedProject) {
+    if (error || projects.length === 0 || !selectedProject) {
         return (
-            <section id="portfolio" className="py-32 min-h-screen flex items-center justify-center" 
-                     style={{ background: '#222046' }}>
-                <div className="text-center">
-                    <h2 className="text-6xl font-bold mb-10 text-white">Selected <span className="text-gray-200">Projects</span></h2>
-                    <p className="text-gray-400 text-xl py-16">No projects found. Check back later!</p>
+            <section 
+                id="portfolio" 
+                className="min-h-screen flex items-center justify-center text-white"
+                style={{ background: THEME.colors.primary }}
+            >
+                <div className="text-center px-4">
+                    <h2 className={`font-bold mb-6 text-white ${isMobile ? 'text-3xl' : 'text-6xl'}`}>
+                        Selected <span className="text-gray-200">Projects</span>
+                    </h2>
+                    <p className="text-gray-400 text-lg">{error || 'No projects found. Check back later!'}</p>
                 </div>
             </section>
         )
     }
 
     return (
-        <section className="min-h-screen py-16 relative overflow-hidden text-white" 
-                 style={{ background: '#222046' }} id="portfolio">
+        <section 
+            className="min-h-screen py-8 md:py-16 relative overflow-hidden text-white" 
+            style={{ background: THEME.colors.primary }} 
+            id="portfolio"
+        >
             <div className="relative z-10 max-w-7xl mx-auto px-4 h-full">
-                {/* Section Header */}
-                <div className="text-center mb-16">
-                    <motion.h2 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-6xl font-bold text-white"
-                    >
+                {/* Header */}
+                <motion.div 
+                    className="text-center mb-8 md:mb-16"
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <h2 className={`font-bold text-white ${isMobile ? 'text-3xl md:text-4xl' : 'text-6xl'}`}>
                         Selected Projects
-                    </motion.h2>
-                </div>
+                    </h2>
+                </motion.div>
 
-                {/* Main Layout Container */}
-                <div className="flex flex-col lg:flex-row gap-6 h-full min-h-[800px]">
-                    {/* Left Side - Project Cards */}
-                    <div className="lg:w-2/5 space-y-4 max-h-[700px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                        {filteredProjects.map((project) => (
-                            <motion.div
-                                key={project.id}
-                                onClick={() => setSelectedProject(project)}
-                                className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 ${
-                                    selectedProject.id === project.id 
-                                        ? 'bg-[#7875A2] shadow-lg transform scale-[1.02]' 
-                                        : 'bg-gray-700/60 hover:bg-gray-600/60'
-                                }`}
-                                whileHover={{ y: -2 }}
-                                whileTap={{ scale: 0.98 }}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <h3 className="text-lg font-bold text-white mb-3">
-                                    {project.title}
-                                </h3>
-                                <p className="text-white/80 text-md leading-relaxed mb-4">
-                                    {project.description}
-                                </p>
-                                
-                                {/* Technologies */}
-                                {project.languages && project.languages.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {project.languages.slice(0, 2).map((lang, idx) => (
-                                            <span 
-                                                key={idx} 
-                                                className="px-4 py-2 rounded-2xl text-white text-sm"
-                                                style={{ background: '#222046' }}
-                                            >
-                                                {lang}
-                                            </span>
-                                        ))}
-                                        {project.languages.length > 2 && (
-                                            <span 
-                                                className="px-4 py-2 rounded-2xl text-white text-sm"
-                                                style={{ background: '#222046' }}
-                                            >
-                                                +{project.languages.length - 2}
-                                            </span>
-                                        )}
-                                    </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* Right Side - Project Details */}
-                    <div className="lg:w-4/5 space-y-6">
-                        {/* Category Filter Bar */}
-                        <motion.div 
-                            className="p-4 rounded-2xl bg-gray-700/60"
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                        >
-                            <div className="flex flex-wrap justify-center gap-4">
-                                {categories.map((category) => (
-                                    <button
-                                        key={category}
-                                        onClick={() => setActiveCategory(activeCategory === category ? null : category)}
-                                        className={`px-6 py-3 rounded-lg text-lg text-center transition-all duration-300 ${
-                                            activeCategory === category
-                                                ? 'bg-white text-gray-800 font-semibold'
-                                                : 'text-white hover:bg-white/10'
-                                        } ${category === 'Machine Learning & AI' ? 'text-base' : ''}`}
-                                        disabled // Disabled for now since categories are not implemented
-                                        style={{ opacity: 0.5, cursor: 'not-allowed' }}
-                                    >
-                                        {category}
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-
-                        {/* Main Project Display */}
-                        <div className="bg-gray-700/60 rounded-2xl overflow-hidden h-[500px] relative">
-                            {/* Single Project Display - No Animation Key to Prevent Stacking */}
-                            <div className="h-full w-full relative overflow-hidden">
-                                {/* Project Image/GIF */}
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={getValidImageSrc(selectedProject)}
-                                    alt={selectedProject.title}
-                                    className="w-full h-full object-cover transition-all duration-500"
+                {/* Main Layout */}
+                <div className={`
+                    ${isMobile 
+                        ? 'flex flex-col gap-6' 
+                        : 'flex flex-col lg:flex-row gap-6 min-h-[800px]'
+                    }
+                `}>
+                    {/* Project List */}
+                    <motion.div 
+                        className={`
+                            ${isMobile 
+                                ? 'order-2' 
+                                : 'lg:w-2/5 max-h-[700px] overflow-y-auto pr-4'
+                            }
+                        `}
+                        variants={fadeInUp}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <div className={`space-y-3 md:space-y-4 ${isMobile ? 'max-h-64 overflow-y-auto' : ''}`}>
+                            {projects.map((project) => (
+                                <ProjectCard
+                                    key={project.id}
+                                    project={project}
+                                    isSelected={selectedProject.id === project.id}
+                                    onClick={() => setSelectedProject(project)}
+                                    isMobile={isMobile}
                                 />
-                                
-                                {/* Gradient Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                                
-                                {/* Project Info Overlay - Bottom Left Aligned */}
-                                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                                    <div className="space-y-4 text-left max-w-4xl">
-                                        {/* Project Title and Description */}
-                                        <div>
-                                            <motion.h3 
-                                                key={`title-${selectedProject.id}`}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.5 }}
-                                                className="text-sm md:text-lg lg:text-md font-bold text-white mb-2"
-                                            >
-                                                {selectedProject.title}
-                                            </motion.h3>
-                                            <motion.p 
-                                                key={`desc-${selectedProject.id}`}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.5, delay: 0.1 }}
-                                                className="text-white/90 text-sm md:text-base lg:text-xs leading-relaxed max-w-2xl"
-                                            >
-                                                {selectedProject.details || selectedProject.description}
-                                            </motion.p>
-                                        </div>
-
-                                        {/* Technologies and Action Buttons */}
-                                        <motion.div 
-                                            key={`actions-${selectedProject.id}`}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5, delay: 0.2 }}
-                                            className="flex flex-col sm:flex-row items-start sm:items-center gap-4"
-                                        >
-                                            {/* Technologies */}
-                                            {selectedProject.languages && selectedProject.languages.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {selectedProject.languages.map((lang, idx) => (
-                                                        <span 
-                                                            key={idx} 
-                                                            className="px-3 py-1 rounded-lg text-white text-xs md:text-sm backdrop-blur-sm"
-                                                            style={{ background: 'rgba(34, 32, 70, 0.8)' }}
-                                                        >
-                                                            {lang}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {/* Action Buttons */}
-                                            <div className="flex gap-3">
-                                                {selectedProject.liveLink && (
-                                                    <Link href={selectedProject.liveLink} target="_blank">
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.05 }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            className="px-4 py-2 bg-violet-500/90 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-violet-600 transition-colors text-sm md:text-base"
-                                                        >
-                                                            Live Demo
-                                                        </motion.button>
-                                                    </Link>
-                                                )}
-                                                {selectedProject.githubLink && (
-                                                    <Link href={selectedProject.githubLink} target="_blank">
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.05 }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            className="px-4 py-2 bg-black/50 backdrop-blur-sm border-2 border-white/30 text-white rounded-lg font-semibold hover:bg-black/70 hover:border-white/50 transition-colors text-sm md:text-base"
-                                                        >
-                                                            View Code
-                                                        </motion.button>
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    </div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    </div>
+                    </motion.div>
+
+                    {/* Main Display */}
+                    <motion.div 
+                        className={`${isMobile ? 'order-1' : 'lg:w-4/5'}`}
+                        variants={fadeInUp}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <CategoryFilter isMobile={isMobile} />
+                        
+                        <ProjectDisplay
+                            project={selectedProject}
+                            showDetails={showDetails}
+                            onToggleDetails={() => setShowDetails(!showDetails)}
+                            onMaximize={() => setShowModal(true)}
+                            getValidImageSrc={getValidImageSrc}
+                            isMobile={isMobile}
+                        />
+                    </motion.div>
                 </div>
 
-                {/* CTA Section */}
-                <div className="text-center pt-16">
-                    <Link href="/projects" className="inline-block">
+                {/* CTA */}
+                <motion.div 
+                    className="text-center pt-8 md:pt-16"
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <Link href="/projects">
                         <motion.button
-                            whileHover={{ 
-                                scale: 1.05,
-                                boxShadow: "0 0 30px rgba(139, 92, 246, 0.5)",
-                            }}
+                            whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="px-12 py-5 bg-gradient-to-r from-violet-500 via-violet-600 to-violet-500 
-                                    text-white rounded-xl font-semibold relative overflow-hidden group
-                                    transition-all duration-300 ease-out text-lg shadow-lg"
+                            className={`
+                                bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-xl 
+                                font-semibold shadow-lg transition-all duration-300
+                                ${isMobile ? 'px-8 py-3 text-base' : 'px-12 py-5 text-lg'}
+                            `}
                         >
-                            <span className="relative z-10">Explore All Projects</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-violet-500 to-violet-600 
-                                        opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            Explore All Projects
                         </motion.button>
                     </Link>
-                </div>
+                </motion.div>
             </div>
+
+            {/* Modal */}
+            <ProjectModal
+                project={selectedProject}
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                getValidImageSrc={getValidImageSrc}
+                isMobile={isMobile}
+            />
         </section>
     )
 }
