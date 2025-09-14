@@ -99,9 +99,11 @@ const AdminProjects = () => {
       
       
       if (data.success) {
-      
-
-        setProjects(data.projects || [])
+        // Sort projects by created_at descending (newest first)
+        const sortedProjects = [...(data.projects || [])].sort((a, b) => {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        setProjects(sortedProjects);
       } else {
         console.error('Failed to fetch projects:', data.error)
         setProjects([])
@@ -219,9 +221,9 @@ const AdminProjects = () => {
                   />
                   
                   {/* Debug overlay */}
-                  <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-xs p-1 rounded">
+                  {/* <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-xs p-1 rounded">
                     ID: {project.id}
-                  </div>
+                  </div> */}
                 </div>
                 
                 {/* Project Info */}
@@ -233,16 +235,19 @@ const AdminProjects = () => {
                   
                   <p className="text-gray-400 mb-4">{project?.description || "No description available"}</p>
                   
-                  {/* Debug: Show raw image data */}
+                  {/* Debug: Show raw image data
                   <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">
                     <strong>Image Data:</strong> {JSON.stringify(project.image)}
                     <br />
                     <strong>Processed URL:</strong> {getValidImageUrl(project.image)}
-                  </div>
+                  </div> */}
 
                   {/* Category */}
                   <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">
                     <strong>Category:</strong> {project?.category || "Uncategorized"}
+                  </div>
+                   <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">
+                    <strong>Created At:</strong> {project?.created_at || "null"}
                   </div>
 
                   {/* Technologies */}

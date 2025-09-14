@@ -155,35 +155,42 @@ const ProjectCard: React.FC<{
     </motion.div>
 )
 
-const CategoryFilter: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
-    const categories = ['Web', 'ML & AI', 'Data', 'Mobile', 'Others']
-    
-    return (
-        <motion.div 
-            className="p-3 md:p-4 rounded-xl bg-gray-700/60 mb-4 md:mb-6"
-            variants={fadeInUp}
-        >
-            <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-                {categories.map((category) => (
-                    <button
-                        key={category}
-                        disabled
-                        className={`
-                            px-3 md:px-4 py-2 rounded-lg transition-all duration-300 
-                            ${isMobile ? 'text-sm' : 'text-base'}
-                            opacity-50 cursor-not-allowed text-white hover:bg-white/10
-                        `}
-                    >
-                        {category}
-                    </button>
-                ))}
-            </div>
-            {isMobile && (
-                <p className="text-center text-xs text-white/60 mt-2">Categories coming soon</p>
-            )}
-        </motion.div>
-    )
-}
+const CATEGORY_LABELS = ['Web', 'ML & AI', 'Data', 'Mobile', 'Others'];
+
+const CategoryFilter: React.FC<{
+    isMobile: boolean,
+    categories: string[],
+    selectedCategory: string | null,
+    onSelect: (cat: string) => void
+}> = ({ isMobile, categories, selectedCategory, onSelect }) => (
+    <motion.div 
+        className="p-3 md:p-4 rounded-xl bg-gray-700/60 mb-4 md:mb-6"
+        variants={fadeInUp}
+    >
+        <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            {categories.map((category) => (
+                <button
+                    key={category}
+                    onClick={() => onSelect(category)}
+                    className={`
+                        px-3 md:px-4 py-2 rounded-lg transition-all duration-300
+                        ${isMobile ? 'text-sm' : 'text-base'}
+                        ${selectedCategory === category 
+                            ? 'bg-violet-600 text-white font-bold' 
+                            : 'bg-gray-800 text-white/80 hover:bg-violet-700/30'}
+                    `}
+                >
+                    {category}
+                </button>
+            ))}
+        </div>
+        {isMobile && (
+            <p className="text-center text-xs text-white/60 mt-2">
+                {categories.length === 0 ? "No categories available" : "Tap category to filter"}
+            </p>
+        )}
+    </motion.div>
+)
 
 const ProjectDisplay: React.FC<{
     project: Project
@@ -454,53 +461,75 @@ const ProjectModal: React.FC<{
 
 // Main Component
 export const Portfolio = () => {
-    const { projects, loading, error } = useProjects()
-    const { isMobile, isTablet } = useResponsive()
-    const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-    const [showDetails, setShowDetails] = useState(!isMobile)
-    const [showModal, setShowModal] = useState(false)
+    const { projects, loading, error } = useProjects();
+    const { isMobile, isTablet } = useResponsive();
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [showDetails, setShowDetails] = useState(!isMobile);
+    const [showModal, setShowModal] = useState(false);
 
-    // Set first project as selected when projects load
+    // Get available categories from projects
+    const availableCategories = React.useMemo(() => {
+        const cats = projects
+            .map(p => p.category || "Others")
+            .filter((v, i, arr) => arr.indexOf(v) === i && v); // unique and not null
+        // Keep order as in CATEGORY_LABELS
+        return CATEGORY_LABELS.filter(label => cats.includes(label)).concat(
+            cats.filter(cat => !CATEGORY_LABELS.includes(cat))
+        );
+    }, [projects]);
+
+    // Filter projects by selected category
+    const filteredProjects = React.useMemo(() => {
+        if (!selectedCategory) return [];
+        return projects.filter(p => (p.category || "Others") === selectedCategory);
+    }, [projects, selectedCategory]);
+
+    // Auto-select first category and project when projects load
     useEffect(() => {
-        if (projects.length > 0 && !selectedProject) {
-            setSelectedProject(projects[0])
+        if (availableCategories.length > 0 && !selectedCategory) {
+            setSelectedCategory(availableCategories[0]);
         }
-    }, [projects, selectedProject])
+    }, [availableCategories, selectedCategory]);
+
+    // Auto-select first project when category changes
+    useEffect(() => {
+        if (filteredProjects.length > 0) {
+            setSelectedProject(filteredProjects[0]);
+        } else {
+            setSelectedProject(null);
+        }
+    }, [filteredProjects]);
 
     // Auto-hide details on mobile initially
     useEffect(() => {
         if (isMobile) {
-            setShowDetails(false)
+            setShowDetails(false);
         }
-    }, [isMobile])
+    }, [isMobile]);
 
     const getValidImageSrc = useCallback((project: Project): string => {
-        const fallbackImage = '/proj1.gif'
-        
+        const fallbackImage = '/proj1.gif';
         try {
-            if (!project?.image) return fallbackImage
-            
+            if (!project?.image) return fallbackImage;
             if (typeof project.image === 'object' && project.image?.src) {
-                const src = project.image.src
+                const src = project.image.src;
                 return src.includes('uploads/') 
                     ? (src.startsWith('/') ? src : '/' + src)
-                    : src
+                    : src;
             }
-            
             if (typeof project.image === 'string') {
-                const src = project.image.trim()
-                if (!src || src.includes('[object Object]')) return fallbackImage
-                
+                const src = project.image.trim();
+                if (!src || src.includes('[object Object]')) return fallbackImage;
                 return src.includes('uploads/') 
                     ? (src.startsWith('/') ? src : '/' + src)
-                    : src
+                    : src;
             }
-            
-            return fallbackImage
+            return fallbackImage;
         } catch {
-            return fallbackImage
+            return fallbackImage;
         }
-    }, [])
+    }, []);
 
     if (loading) {
         return (
@@ -516,10 +545,10 @@ export const Portfolio = () => {
                     <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
                 </div>
             </section>
-        )
+        );
     }
 
-    if (error || projects.length === 0 || !selectedProject) {
+    if (error || projects.length === 0 || !selectedCategory) {
         return (
             <section 
                 id="portfolio" 
@@ -533,7 +562,7 @@ export const Portfolio = () => {
                     <p className="text-gray-400 text-lg">{error || 'No projects found. Check back later!'}</p>
                 </div>
             </section>
-        )
+        );
     }
 
     return (
@@ -575,15 +604,19 @@ export const Portfolio = () => {
                         animate="visible"
                     >
                         <div className={`space-y-3 md:space-y-4 ${isMobile ? 'max-h-64 overflow-y-auto' : ''}`}>
-                            {projects.map((project) => (
-                                <ProjectCard
-                                    key={project.id}
-                                    project={project}
-                                    isSelected={selectedProject.id === project.id}
-                                    onClick={() => setSelectedProject(project)}
-                                    isMobile={isMobile}
-                                />
-                            ))}
+                            {filteredProjects.length === 0 ? (
+                                <div className="text-gray-400 text-center py-8">No projects in this category.</div>
+                            ) : (
+                                filteredProjects.map((project) => (
+                                    <ProjectCard
+                                        key={project.id}
+                                        project={project}
+                                        isSelected={selectedProject?.id === project.id}
+                                        onClick={() => setSelectedProject(project)}
+                                        isMobile={isMobile}
+                                    />
+                                ))
+                            )}
                         </div>
                     </motion.div>
 
@@ -594,16 +627,27 @@ export const Portfolio = () => {
                         initial="hidden"
                         animate="visible"
                     >
-                        <CategoryFilter isMobile={isMobile} />
-                        
-                        <ProjectDisplay
-                            project={selectedProject}
-                            showDetails={showDetails}
-                            onToggleDetails={() => setShowDetails(!showDetails)}
-                            onMaximize={() => setShowModal(true)}
-                            getValidImageSrc={getValidImageSrc}
+                        <CategoryFilter 
                             isMobile={isMobile}
+                            categories={availableCategories}
+                            selectedCategory={selectedCategory}
+                            onSelect={cat => setSelectedCategory(cat)}
                         />
+                        
+                        {selectedProject ? (
+                            <ProjectDisplay
+                                project={selectedProject}
+                                showDetails={showDetails}
+                                onToggleDetails={() => setShowDetails(!showDetails)}
+                                onMaximize={() => setShowModal(true)}
+                                getValidImageSrc={getValidImageSrc}
+                                isMobile={isMobile}
+                            />
+                        ) : (
+                            <div className="bg-gray-700/60 rounded-xl flex items-center justify-center h-[300px] text-gray-400">
+                                No project selected in this category.
+                            </div>
+                        )}
                     </motion.div>
                 </div>
 
@@ -631,13 +675,15 @@ export const Portfolio = () => {
             </div>
 
             {/* Modal */}
-            <ProjectModal
-                project={selectedProject}
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                getValidImageSrc={getValidImageSrc}
-                isMobile={isMobile}
-            />
+            {selectedProject && (
+                <ProjectModal
+                    project={selectedProject}
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    getValidImageSrc={getValidImageSrc}
+                    isMobile={isMobile}
+                />
+            )}
         </section>
-    )
+    );
 }

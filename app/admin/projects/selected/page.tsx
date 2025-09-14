@@ -116,7 +116,7 @@ export default function SelectedProjectsPage() {
           const selected = data.projects.filter((p: Project) => p.selected === 1)
             .sort((a: Project, b: Project) => (a.selectedOrder || 0) - (b.selectedOrder || 0));
           
-          setSelectedProjects(selected.slice(0, 3));
+          setSelectedProjects(selected);
         }
         
         setIsLoading(false);
@@ -131,12 +131,6 @@ export default function SelectedProjectsPage() {
 
   // Add a project to the selected list
   const addProject = (project: Project) => {
-    if (selectedProjects.length >= 3) {
-      setSaveMessage({ type: 'error', text: 'Maximum 3 projects can be selected' });
-      setTimeout(() => setSaveMessage(null), 3000);
-      return;
-    }
-    
     // Check if project is already selected
     if (selectedProjects.some(p => p.id === project.id)) {
       setSaveMessage({ type: 'error', text: 'Project already selected' });
@@ -188,6 +182,14 @@ export default function SelectedProjectsPage() {
     }
   };
 
+  // Helper to group projects by category
+  const groupedSelected = selectedProjects.reduce((acc, project) => {
+    const cat = project.category || "Other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(project);
+    return acc;
+  }, {} as Record<string, Project[]>);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -238,41 +240,45 @@ export default function SelectedProjectsPage() {
 
           <div className="bg-gray-900 p-4 rounded-xl mb-6">
             <p className="text-gray-400 mb-2">
-              Select up to 3 projects to feature in your portfolio. {selectedProjects.length}/3 selected.
+              Select projects to feature in your portfolio. {selectedProjects.length} selected.
             </p>
-            
             {selectedProjects.length === 0 ? (
               <div className="py-8 text-center text-gray-500">
-                No projects selected. Select up to 3 projects from the list below.
+                No projects selected.
               </div>
             ) : (
               <div>
-                {selectedProjects.map((project, index) => (
-                  <div 
-                    key={project.id} 
-                    className="flex items-center justify-between bg-gray-800 p-4 rounded-lg mb-2"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-violet-500 font-bold w-6">{index + 1}</span>
-                      <div className="w-12 h-12 overflow-hidden rounded-md">
-                        <img 
-                          src={getValidImagePath(project.image)} 
-                          alt={project.title} 
-                          className="w-full h-full object-cover"
-                          style={{ objectFit: 'cover' }}
-                        />
+                {Object.entries(groupedSelected).map(([category, projects]) => (
+                  <div key={category} className="mb-6">
+                    <h3 className="text-lg font-bold mb-3 text-violet-400">{category}</h3>
+                    {projects.map((project, index) => (
+                      <div 
+                        key={project.id} 
+                        className="flex items-center justify-between bg-gray-800 p-4 rounded-lg mb-2"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="text-violet-500 font-bold w-6">{index + 1}</span>
+                          <div className="w-12 h-12 overflow-hidden rounded-md">
+                            <img 
+                              src={getValidImagePath(project.image)} 
+                              alt={project.title} 
+                              className="w-full h-full object-cover"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          </div>
+                          <div>
+                            <h3 className="font-medium">{project.title}</h3>
+                            <p className="text-sm text-gray-400">{project.year}</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => removeProject(selectedProjects.findIndex(p => p.id === project.id))} 
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                        >
+                          Remove
+                        </button>
                       </div>
-                      <div>
-                        <h3 className="font-medium">{project.title}</h3>
-                        <p className="text-sm text-gray-400">{project.year}</p>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => removeProject(index)} 
-                      className="text-red-400 hover:text-red-300 transition-colors"
-                    >
-                      Remove
-                    </button>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -325,9 +331,8 @@ export default function SelectedProjectsPage() {
                   <button
                     onClick={() => addProject(project)}
                     className="w-full px-3 py-2 mt-2 bg-violet-600/20 text-violet-300 hover:bg-violet-600/30 rounded-lg transition-colors"
-                    disabled={selectedProjects.length >= 3}
                   >
-                    {selectedProjects.length >= 3 ? 'Max Selected' : 'Select Project'}
+                    Select Project
                   </button>
                 </div>
               ))}
