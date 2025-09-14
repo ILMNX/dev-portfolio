@@ -11,6 +11,7 @@ interface Project {
   year: number;
   description: string;
   details?: string;
+  category?: string;
   languages: string[];
   image: { src: string };
   githubLink?: string;
@@ -238,7 +239,12 @@ const AdminProjects = () => {
                     <br />
                     <strong>Processed URL:</strong> {getValidImageUrl(project.image)}
                   </div>
-                  
+
+                  {/* Category */}
+                  <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">
+                    <strong>Category:</strong> {project?.category || "Uncategorized"}
+                  </div>
+
                   {/* Technologies */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {project?.languages?.slice(0, 3).map((lang, idx) => (

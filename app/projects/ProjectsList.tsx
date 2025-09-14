@@ -11,6 +11,7 @@ interface Project {
   year: number
   title: string
   description: string
+  category?: string
   image: { src: string } | string | null | undefined
   languages: string[]
   details?: string

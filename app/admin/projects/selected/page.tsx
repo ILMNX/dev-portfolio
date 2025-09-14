@@ -10,6 +10,8 @@ interface Project {
   title: string;
   year: number;
   description: string;
+  details?: string;
+  category?: string;
   image: { src: string } | string;
   languages: string[];
   selected?: number;
@@ -301,6 +303,10 @@ export default function SelectedProjectsPage() {
                   <p className="text-sm text-gray-300 mb-3 line-clamp-2">
                     {project.description}
                   </p>
+                  {/* Category */}
+                  <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">
+                    <strong>Category:</strong> {project?.category || "Uncategorized"}
+                  </div>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {project.languages.slice(0, 3).map((lang, i) => (
                       <span 

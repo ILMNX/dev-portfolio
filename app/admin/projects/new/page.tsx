@@ -26,7 +26,8 @@ const NewProject = () => {
     languages: [''],
     githubLink: '',
     liveLink: '',
-    image: '/proj1.gif' // Changed to GIF fallback
+    image: '/proj1.gif', // Changed to GIF fallback
+    category: '' // Added category property
   })
 
   useEffect(() => {
@@ -188,6 +189,13 @@ const NewProject = () => {
     }
   }
 
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm(prev => ({
+      ...prev,
+      category: e.target.value
+    }))
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -284,6 +292,24 @@ const NewProject = () => {
                 rows={4}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
+            </div>
+            <div className="mb-6">
+              <label className="block text-gray-400 mb-2">Category *</label>
+              <select
+                id="category"
+                name="category"
+                value={form.category}
+                onChange={handleCategoryChange}
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                required
+              >
+                <option value="">Select a category</option>
+                <option value="Web">Web</option>
+                <option value="Mobile">Mobile</option>
+                <option value="Data">Data</option>
+                <option value="ML & AI">ML & AI</option>
+                <option value="Others">Others</option>
+              </select>
             </div>
             
             <div className="mb-6">

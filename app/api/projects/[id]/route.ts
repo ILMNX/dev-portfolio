@@ -60,6 +60,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       year: parseInt(data.year),
       description: data.description,
       details: data.details || '',
+      category: data.category || '',
       languages: data.languages,
       image: imageData,
       githubLink: data.githubLink || '',

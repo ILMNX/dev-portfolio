@@ -7,6 +7,7 @@ interface Project {
   year: number;
   description: string;
   details?: string;
+  category?: string;
   languages: string[];
   image: { src: string };
   githubLink?: string;
@@ -24,6 +25,7 @@ interface ProjectRow {
   year: number;
   description: string;
   details: string | null;
+  category: string | null;
   languages: string; // This is JSON string in the database
   image_url: string | null;
   github_link: string | null;
@@ -64,6 +66,7 @@ function rowToProject(row: ProjectRow): Project {
     year: row.year,
     description: row.description,
     details: row.details || '',
+    category: row.category || '',
     languages: JSON.parse(row.languages),
     image: { src: imageSrc }, // This should now use the potentially corrected string
     githubLink: row.github_link || '',
@@ -111,9 +114,9 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<Proje
     const result = await turso.execute({
       sql: `
         INSERT INTO projects (
-          title, year, description, details, languages, 
+          title, year, description, details, category, languages, 
           image_url, github_link, live_link
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *
       `,
       args: [
@@ -121,6 +124,7 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<Proje
         project.year,
         project.description,
         project.details || '',
+        project.category || '',
         JSON.stringify(project.languages),
         project.image.src,
         project.githubLink || '',
@@ -165,6 +169,7 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
           year = ?, 
           description = ?, 
           details = ?, 
+        
           languages = ?, 
           image_url = ?, 
           github_link = ?, 
@@ -178,6 +183,7 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
         updatedProject.year,
         updatedProject.description,
         updatedProject.details || '',
+        updatedProject.category || '',
         JSON.stringify(updatedProject.languages),
         updatedProject.image.src,
         updatedProject.githubLink || '',

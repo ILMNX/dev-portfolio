@@ -6,6 +6,7 @@ export const createProjectsTable = `
     title TEXT NOT NULL,
     year INTEGER NOT NULL,
     description TEXT NOT NULL,
+    category TEXT NOT NULL,
     details TEXT,
     languages TEXT NOT NULL, -- Stored as JSON string
     image_url TEXT,

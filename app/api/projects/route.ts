@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       year: parseInt(data.year),
       description: data.description,
       details: data.details || '',
+      category: data.category || '',
       languages: data.languages,
       image: imageData,
       githubLink: data.githubLink || '',

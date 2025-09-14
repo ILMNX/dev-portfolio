@@ -66,6 +66,7 @@ export function ProjectEditClient({ id }: { id: string }) {
     year: new Date().getFullYear(),
     description: '',
     details: '',
+    category: '',
     languages: [''],
     githubLink: '',
     liveLink: '',
@@ -97,6 +98,7 @@ export function ProjectEditClient({ id }: { id: string }) {
           year: data.project.year,
           description: data.project.description,
           details: data.project.details || '',
+          category: data.project.category || '',
           languages: data.project.languages,
           githubLink: data.project.githubLink || '',
           liveLink: data.project.liveLink || '',
@@ -395,6 +397,23 @@ export function ProjectEditClient({ id }: { id: string }) {
                 rows={4}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="category" className="block text-gray-400 mb-2">Category</label>
+                <select
+                  name="category"
+                  id="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  <option value="">Select Category</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Mobile App">Mobile App</option>
+                  <option value="Data">Data</option>
+                  <option value="Other">Other</option>
+                </select>
             </div>
             
             <div className="mb-6">
