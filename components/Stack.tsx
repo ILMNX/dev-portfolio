@@ -547,7 +547,7 @@ export const Stack = () => {
                                     onHoverStart={() => setHoveredIcon(item.id)}
                                     onHoverEnd={() => setHoveredIcon(null)}
                                     onClick={startIntroSequence}
-                                    className='flex items-center justify-center flex-col rounded-xl p-2 sm:p-4 cursor-pointer bg-white/5 hover:bg-white/15 relative overflow-hidden border border-transparent hover:border-violet-500/50 transition-all duration-300'
+                                    className='flex items-center justify-center flex-col rounded-xl p-2 sm:p-8 cursor-pointer bg-white/5 hover:bg-white/15 relative overflow-hidden border border-transparent hover:border-violet-500/50 transition-all duration-300'
                                 >
                                     {/* Hover glow effect */}
                                     <motion.div
@@ -601,7 +601,7 @@ export const Stack = () => {
                                     </p>
                                     
                                     {/* Subtle animation hint */}
-                                    <motion.div
+                                    {/* <motion.div
                                         className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-xs text-violet-300 opacity-0"
                                         animate={{
                                             opacity: hoveredIcon === item.id ? [0, 1, 0] : 0,
@@ -610,7 +610,7 @@ export const Stack = () => {
                                         transition={{ duration: 1, repeat: Infinity }}
                                     >
                                         {isMobile ? 'Tap to play!' : 'Click to play!'}
-                                    </motion.div>
+                                    </motion.div> */}
                                 </motion.div>
                             ))}
                         </div>
