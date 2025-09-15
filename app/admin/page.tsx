@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 const AdminLogin = () => {
   const [username, setUsername] = useState('')
@@ -97,7 +98,7 @@ const AdminLogin = () => {
             {loading ? 'Logging in...' : 'Login'}
           </motion.button>
           <div className="mt-4 text-center text-gray-500 text-sm">
-            <a href="/" className="text-violet-500 hover:underline justify-center">Back to Home</a>
+            <Link href="/" className="text-violet-500 hover:underline justify-center">Back to Home</Link>
           </div>
         </form>
       </motion.div>

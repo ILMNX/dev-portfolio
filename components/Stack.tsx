@@ -48,13 +48,6 @@ interface FloatingIcon {
     hitTime?: number;
 }
 
-interface BackgroundParticle {
-    id: number;
-    left: string;
-    top: string;
-    duration: number;
-    delay: number;
-}
 
 export const Stack = () => {
     const [gameMode, setGameMode] = useState(false);
@@ -266,8 +259,8 @@ export const Stack = () => {
                     };
                 }
                 
-                let newX = icon.x + icon.vx;
-                let newY = icon.y + icon.vy;
+                const newX = icon.x + icon.vx;
+                const newY = icon.y + icon.vy;
                 let newVx = icon.vx;
                 let newVy = icon.vy;
 

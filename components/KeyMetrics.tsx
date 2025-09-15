@@ -77,7 +77,7 @@ export const KeyMetrics = () => {
                 </motion.p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                    {metrics.map((metric, index) => {
+                    {metrics.map((metric) => {
                         const Icon = metric.icon;
                         return (
                             <motion.div

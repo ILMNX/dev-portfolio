@@ -462,7 +462,7 @@ const ProjectModal: React.FC<{
 // Main Component
 export const Portfolio = () => {
     const { projects, loading, error } = useProjects();
-    const { isMobile, isTablet } = useResponsive();
+    const { isMobile } = useResponsive();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [showDetails, setShowDetails] = useState(true);

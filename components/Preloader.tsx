@@ -26,9 +26,9 @@ const Preloader = ({ onLoadComplete }: PreloaderProps) => {
         setLoadingStage('Loading assets...')
         
         // Stage 2: Preload critical images
-        const imagesToPreload: any[] = []
+        const imagesToPreload: string[] = []
         if (projectsData.success && projectsData.projects) {
-          projectsData.projects.forEach((project: any) => {
+          projectsData.projects.forEach((project: { image?: string | { src?: string } }) => {
             if (project.image) {
               const imgSrc = typeof project.image === 'string' ? project.image : project.image?.src
               if (imgSrc) imagesToPreload.push(imgSrc)
