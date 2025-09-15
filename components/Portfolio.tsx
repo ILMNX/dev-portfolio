@@ -465,7 +465,7 @@ export const Portfolio = () => {
     const { isMobile, isTablet } = useResponsive();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [showDetails, setShowDetails] = useState(!isMobile);
+    const [showDetails, setShowDetails] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
     // Get available categories from projects
@@ -502,11 +502,11 @@ export const Portfolio = () => {
     }, [filteredProjects]);
 
     // Auto-hide details on mobile initially
-    useEffect(() => {
-        if (isMobile) {
-            setShowDetails(false);
-        }
-    }, [isMobile]);
+    // useEffect(() => {
+    //     if (isMobile) {
+    //         setShowDetails(false);
+    //     }
+    // }, [isMobile]);
 
     const getValidImageSrc = useCallback((project: Project): string => {
         const fallbackImage = '/proj1.gif';
@@ -582,6 +582,9 @@ export const Portfolio = () => {
                     <h2 className={`font-bold text-white ${isMobile ? 'text-3xl md:text-4xl' : 'text-6xl'}`}>
                         Selected Projects
                     </h2>
+                    <p className={`mt-4 text-white/80 ${isMobile ? 'text-sm md:text-base' : 'text-lg'}`}>
+                        A curated showcase of my best work across various domains.
+                    </p>
                 </motion.div>
 
                 {/* Main Layout */}
@@ -596,14 +599,14 @@ export const Portfolio = () => {
                         className={`
                             ${isMobile 
                                 ? 'order-2' 
-                                : 'lg:w-2/5 max-h-[700px] overflow-y-auto pr-4'
+                                : 'lg:w-2/5 pr-4 pl-2 ml-[-8px] max-h-[700px] overflow-visible'
                             }
                         `}
                         variants={fadeInUp}
                         initial="hidden"
                         animate="visible"
                     >
-                        <div className={`space-y-3 md:space-y-4 ${isMobile ? 'max-h-64 overflow-y-auto' : ''}`}>
+                        <div className={`space-y-3 md:space-y-4 ${isMobile ? 'max-h-64 overflow-visible' : ''}`}>
                             {filteredProjects.length === 0 ? (
                                 <div className="text-gray-400 text-center py-8">No projects in this category.</div>
                             ) : (
@@ -653,7 +656,7 @@ export const Portfolio = () => {
 
                 {/* CTA */}
                 <motion.div 
-                    className="text-center pt-8 md:pt-16"
+                    className="text-center pt-8 md:pt-2"
                     variants={fadeInUp}
                     initial="hidden"
                     animate="visible"
