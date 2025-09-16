@@ -533,7 +533,7 @@ export function ProjectEditClient({ id }: { id: string }) {
                 </motion.button>
                 
                 <p className="text-sm text-gray-400">
-                  Supports JPG, PNG, GIF (Max size: 5MB)
+                  Supports JPG, PNG, GIF, WEBP, WEBM(Max size: 5MB)
                 </p>
               </div>
             </div>

@@ -81,6 +81,11 @@ const getValidImagePath = (image: { src: string } | string): string => {
   return fallback;
 };
 
+// Helper function to check if file is a video
+const isVideoFile = (url: string): boolean => {
+  return url.includes('.webm') || url.includes('.mp4') || url.includes('.mov');
+};
+
 export default function SelectedProjectsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -259,12 +264,39 @@ export default function SelectedProjectsPage() {
                         <div className="flex items-center space-x-3">
                           <span className="text-violet-500 font-bold w-6">{index + 1}</span>
                           <div className="w-12 h-12 overflow-hidden rounded-md">
-                            <img 
-                              src={getValidImagePath(project.image)} 
-                              alt={project.title} 
-                              className="w-full h-full object-cover"
-                              style={{ objectFit: 'cover' }}
-                            />
+                            {isVideoFile(getValidImagePath(project.image)) ? (
+                              <video
+                                src={getValidImagePath(project.image)}
+                                className="w-full h-full object-cover"
+                                style={{ objectFit: 'cover' }}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                onLoadedData={() => {
+                                  console.log(`✅ Video loaded for ${project.title}:`, getValidImagePath(project.image));
+                                }}
+                                onError={(e) => {
+                                  console.error(`❌ Video failed for ${project.title}:`, getValidImagePath(project.image));
+                                  // Optionally set a fallback here
+                                }}
+                              />
+                            ) : (
+                              <img
+                                src={getValidImagePath(project.image)}
+                                alt={project.title}
+                                className="w-full h-full object-cover"
+                                style={{ objectFit: 'cover' }}
+                                onLoad={() => {
+                                  console.log(`✅ Image loaded for ${project.title}:`, getValidImagePath(project.image));
+                                }}
+                                onError={(e) => {
+                                  if (!e.currentTarget.src.includes('proj1.gif')) {
+                                    e.currentTarget.src = '/proj1.gif';
+                                  }
+                                }}
+                              />
+                            )}
                           </div>
                           <div>
                             <h3 className="font-medium">{project.title}</h3>
@@ -297,12 +329,39 @@ export default function SelectedProjectsPage() {
                   className="bg-gray-900 p-4 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   <div className="w-full h-32 mb-3 overflow-hidden rounded-md">
-                    <img 
-                      src={getValidImagePath(project.image)} 
-                      alt={project.title} 
-                      className="w-full h-full object-cover"
-                      style={{ objectFit: 'cover' }}
-                    />
+                    {isVideoFile(getValidImagePath(project.image)) ? (
+                      <video
+                        src={getValidImagePath(project.image)}
+                        className="w-full h-full object-cover"
+                        style={{ objectFit: 'cover' }}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        onLoadedData={() => {
+                          console.log(`✅ Video loaded for ${project.title}:`, getValidImagePath(project.image));
+                        }}
+                        onError={(e) => {
+                          console.error(`❌ Video failed for ${project.title}:`, getValidImagePath(project.image));
+                          // Optionally set a fallback here
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={getValidImagePath(project.image)}
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                        style={{ objectFit: 'cover' }}
+                        onLoad={() => {
+                          console.log(`✅ Image loaded for ${project.title}:`, getValidImagePath(project.image));
+                        }}
+                        onError={(e) => {
+                          if (!e.currentTarget.src.includes('proj1.gif')) {
+                            e.currentTarget.src = '/proj1.gif';
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                   <h3 className="text-lg font-medium mb-1">{project.title}</h3>
                   <p className="text-sm text-gray-400 mb-3">{project.year}</p>

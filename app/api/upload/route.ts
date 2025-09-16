@@ -21,21 +21,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
     }
     
-    // Check if file is an image or GIF
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    // Check if file is an image, GIF, or WebM
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/webm'];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Invalid file type. Only JPG, PNG, GIF, and WebP files are allowed.' 
+        error: 'Invalid file type. Only JPG, PNG, GIF, WebP, and WebM files are allowed.' 
       }, { status: 400 });
     }
     
-    // Check file size (limit to 10MB for GIFs, 5MB for others)
-    const maxSize = file.type === 'image/gif' ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    // Check file size (limit to 10MB for GIFs and WebM, 5MB for others)
+    const maxSize = (file.type === 'image/gif' || file.type === 'video/webm') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json({ 
         success: false, 
-        error: `File size exceeds ${file.type === 'image/gif' ? '10MB' : '5MB'} limit` 
+        error: `File size exceeds ${(file.type === 'image/gif' || file.type === 'video/webm') ? '10MB' : '5MB'} limit` 
       }, { status: 400 });
     }
     

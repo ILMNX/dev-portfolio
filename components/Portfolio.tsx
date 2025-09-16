@@ -192,6 +192,12 @@ const CategoryFilter: React.FC<{
     </motion.div>
 )
 
+
+// Helper function to check if file is a video
+const isVideoFile = (url: string): boolean => {
+    return url.includes('.webm') || url.includes('.mp4') || url.includes('.mov');
+};
+
 const ProjectDisplay: React.FC<{
     project: Project
     showDetails: boolean
@@ -226,13 +232,30 @@ const ProjectDisplay: React.FC<{
         </div>
 
         <div className="h-full w-full relative overflow-hidden">
-            <img
-                src={getValidImageSrc(project)}
-                alt={project.title}
-                className="w-full h-full object-cover transition-all duration-500"
-                loading="lazy"
-            />
-            
+            {isVideoFile(getValidImageSrc(project)) ? (
+                <video
+                    src={getValidImageSrc(project)}
+                    className="w-full h-full object-cover transition-all duration-500"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onLoadedData={() => {
+                        console.log(`✅ Video loaded for ${project.title}:`, getValidImageSrc(project));
+                    }}
+                    onError={(e) => {
+                        console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
+                        // Optionally set a fallback here
+                    }}
+                />
+            ) : (
+                <img
+                    src={getValidImageSrc(project)}
+                    alt={project.title}
+                    className="w-full h-full object-cover transition-all duration-500"
+                    loading="lazy"
+                />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
             
             <AnimatePresence>
@@ -358,12 +381,28 @@ const ProjectModal: React.FC<{
                         
                         {/* Full Project Image - Takes most of the screen */}
                         <div className={`flex-1 relative ${isMobile ? 'min-h-[50vh]' : 'min-h-[70vh]'}`}>
-                            <img
-                                src={getValidImageSrc(project)}
-                                alt={project.title}
-                                className="w-full h-full object-contain bg-gray-900"
-                            />
-                            
+                            {isVideoFile(getValidImageSrc(project)) ? (
+                                <video
+                                    src={getValidImageSrc(project)}
+                                    className="w-full h-full object-contain bg-gray-900"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    onLoadedData={() => {
+                                        console.log(`✅ Video loaded for ${project.title}:`, getValidImageSrc(project));
+                                    }}
+                                    onError={(e) => {
+                                        console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
+                                    }}
+                                />
+                            ) : (
+                                <img
+                                    src={getValidImageSrc(project)}
+                                    alt={project.title}
+                                    className="w-full h-full object-contain bg-gray-900"
+                                />
+                            )}
                             {/* Gradient overlay for text readability */}
                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent h-32" />
                         </div>

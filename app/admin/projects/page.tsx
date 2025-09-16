@@ -70,6 +70,11 @@ const getValidImageUrl = (image: { src: string } | string): string => {
   return fallback;
 };
 
+// Helper function to check if file is a video
+const isVideoFile = (url: string): boolean => {
+  return url.includes('.webm') || url.includes('.mp4') || url.includes('.mov');
+};
+
 // Projects list component for admin
 const AdminProjects = () => {
   const [projects, setProjects] = useState<Project[]>([])
@@ -198,27 +203,49 @@ const AdminProjects = () => {
               <div key={project?.id || Math.random()} className="bg-gray-900 rounded-xl overflow-hidden hover:bg-gray-800 transition-colors">
                 {/* Project Image */}
                 <div className="relative h-48 overflow-hidden bg-gray-800">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={getValidImageUrl(project?.image)} 
-                    alt={project?.title || "Project thumbnail"}
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    style={{ 
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%'
-                    }}
-                    onLoad={() => {
-                      console.log(`✅ Image loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
-                    }}
-                    onError={(e) => {
-                     
-                      // Set fallback image
-                      if (!e.currentTarget.src.includes('proj1.gif')) {
-                        e.currentTarget.src = '/proj1.gif';
-                      }
-                    }}
-                  />
+                  {isVideoFile(getValidImageUrl(project?.image)) ? (
+                    <video 
+                      src={getValidImageUrl(project?.image)}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      style={{ 
+                        objectFit: 'cover',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      onLoadedData={() => {
+                        console.log(`✅ Video loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
+                      }}
+                      onError={(e) => {
+                        console.error(`❌ Video failed to load for ${project.title}:`, getValidImageUrl(project?.image));
+                        // You could set a fallback here if needed
+                      }}
+                    />
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img 
+                      src={getValidImageUrl(project?.image)} 
+                      alt={project?.title || "Project thumbnail"}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      style={{ 
+                        objectFit: 'cover',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                      onLoad={() => {
+                        console.log(`✅ Image loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
+                      }}
+                      onError={(e) => {
+                        // Set fallback image
+                        if (!e.currentTarget.src.includes('proj1.gif')) {
+                          e.currentTarget.src = '/proj1.gif';
+                        }
+                      }}
+                    />
+                  )}
                   
                   {/* Debug overlay */}
                   {/* <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-xs p-1 rounded">
@@ -235,12 +262,12 @@ const AdminProjects = () => {
                   
                   <p className="text-gray-400 mb-4">{project?.description || "No description available"}</p>
                   
-                  {/* Debug: Show raw image data
+                  Debug: Show raw image data
                   <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">
                     <strong>Image Data:</strong> {JSON.stringify(project.image)}
                     <br />
                     <strong>Processed URL:</strong> {getValidImageUrl(project.image)}
-                  </div> */}
+                  </div>
 
                   {/* Category */}
                   <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-800 rounded">

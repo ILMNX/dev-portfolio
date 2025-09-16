@@ -17,7 +17,7 @@ const NewProject = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   
-  // Form state - changed default image to GIF
+  // Form state - updated to support video
   const [form, setForm] = useState({
     title: '',
     year: new Date().getFullYear(),
@@ -26,7 +26,7 @@ const NewProject = () => {
     languages: [''],
     githubLink: '',
     liveLink: '',
-    image: '/proj1.gif', // Changed to GIF fallback
+    image: '/project_fallback.webm', // Changed to WebM fallback
     category: '' // Added category property
   })
 
@@ -77,22 +77,35 @@ const NewProject = () => {
     }))
   }
 
-  // Updated file change handler for GIF support
+  // Updated file change handler for video support
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Check file type - now includes GIF
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    // Check file type - now includes video formats
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'video/webm', 'video/mp4', 'video/mov'
+    ]
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload an image file (JPG, PNG, GIF, or WebP)')
+      alert('Please upload an image file (JPG, PNG, GIF, WebP) or video file (WebM, MP4, MOV)')
       return
     }
 
-    // Check file size (limit to 10MB for GIFs, 5MB for others)
-    const maxSize = file.type === 'image/gif' ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+    // Check file size (limit based on type)
+    let maxSize
+    if (file.type.startsWith('video/')) {
+      maxSize = 50 * 1024 * 1024 // 50MB for videos
+    } else if (file.type === 'image/gif') {
+      maxSize = 10 * 1024 * 1024 // 10MB for GIFs
+    } else {
+      maxSize = 5 * 1024 * 1024 // 5MB for images
+    }
+
     if (file.size > maxSize) {
-      alert(`File size exceeds ${file.type === 'image/gif' ? '10MB' : '5MB'} limit`)
+      const sizeLimit = file.type.startsWith('video/') ? '50MB' : 
+                       file.type === 'image/gif' ? '10MB' : '5MB'
+      alert(`File size exceeds ${sizeLimit} limit`)
       return
     }
 
@@ -107,6 +120,22 @@ const NewProject = () => {
       ...prev,
       image: previewUrl
     }))
+  }
+
+  // Helper function to check if file is video
+  const isVideoFile = (file: File | string) => {
+    if (typeof file === 'string') {
+      return file.includes('.webm') || file.includes('.mp4') || file.includes('.mov')
+    }
+    return file.type.startsWith('video/')
+  }
+
+  // Helper function to get media type from URL
+  const getMediaType = (url: string) => {
+    if (url.includes('.webm') || url.includes('.mp4') || url.includes('.mov')) {
+      return 'video'
+    }
+    return 'image'
   }
 
   const uploadImage = async (): Promise<string> => {
@@ -373,32 +402,48 @@ const NewProject = () => {
             </div>
             
             <div className="mb-8">
-              <label className="block text-gray-400 mb-2">Project Image/GIF</label>
+              <label className="block text-gray-400 mb-2">Project Image/Video</label>
               <div className="flex flex-col space-y-4">
                 {/* Hidden file input - updated accept attribute */}
                 <input
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept="image/*,.gif"
+                  accept="image/*,video/webm,video/mp4,video/mov,.gif,.webm,.mp4,.mov"
                   className="hidden"
                 />
                 
-                {/* Image preview or current image - updated for GIF support */}
+                {/* Media preview - updated to support video */}
                 <div className="relative h-48 border-2 border-dashed rounded-lg overflow-hidden border-gray-700 hover:border-gray-500 transition-colors">
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
-                      {/* Use img tag instead of Next.js Image for GIF support */}
-                      <img 
-                        src={imagePreview || form.image} 
-                        alt="Project thumbnail" 
-                        className="w-full h-full object-cover"
-                        style={{ 
-                          objectFit: 'cover',
-                          width: '100%',
-                          height: '100%'
-                        }}
-                      />
+                      {/* Conditionally render video or image */}
+                      {(uploadedImage && isVideoFile(uploadedImage)) || getMediaType(imagePreview || form.image) === 'video' ? (
+                        <video 
+                          src={imagePreview || form.image}
+                          className="w-full h-full object-cover"
+                          style={{ 
+                            objectFit: 'cover',
+                            width: '100%',
+                            height: '100%'
+                          }}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <img 
+                          src={imagePreview || form.image} 
+                          alt="Project thumbnail" 
+                          className="w-full h-full object-cover"
+                          style={{ 
+                            objectFit: 'cover',
+                            width: '100%',
+                            height: '100%'
+                          }}
+                        />
+                      )}
                       {isUploading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">
                           <div className="w-3/4 h-2 bg-gray-700 rounded-full overflow-hidden">
@@ -413,7 +458,7 @@ const NewProject = () => {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-full">
-                      <p className="text-gray-400">No image selected</p>
+                      <p className="text-gray-400">No media selected</p>
                     </div>
                   )}
                 </div>
@@ -429,12 +474,12 @@ const NewProject = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                   </svg>
-                  Upload Image/GIF
+                  Upload Image/Video
                 </motion.button>
                 
                 {/* Updated help text */}
                 <p className="text-sm text-gray-400">
-                  Supports JPG, PNG, GIF, WebP (Max size: 5MB for images, 10MB for GIFs)
+                  Supports JPG, PNG, GIF, WebP, WebM, MP4, MOV (Max size: 5MB for images, 10MB for GIFs, 50MB for videos)
                 </p>
               </div>
             </div>
