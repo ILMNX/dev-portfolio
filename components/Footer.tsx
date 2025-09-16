@@ -3,7 +3,7 @@ import React from 'react';
 export const Footer = () => {
     return (
         <footer className="py-8 max-w-[1200px] mx-auto px-4">
-            <div className="mt-12 flex sm:justify-between justify-center items-center gap-10 max-sm:flex-col">
+            <div className="mt-12 flex sm:justify-center justify-center items-center gap-10 max-sm:flex-col">
                 {/* <p className="text-gray-200">© 2025. All rights reserved.</p> */}
                 <ul className="flex gap-5 flex-wrap">
                     <a href="https://github.com/ILMNX" aria-label="GitHub" className="text-gray-200 flex items-center justify-center w-10 h-10 rounded-full hover:text-gray-400 transition-colors">
