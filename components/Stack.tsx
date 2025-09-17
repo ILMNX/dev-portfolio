@@ -12,6 +12,11 @@ import { FaFlutter } from "react-icons/fa6";
 import { FaJava } from "react-icons/fa";
 import { FaPhp } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaDocker } from "react-icons/fa";
+import { SiTailwindcss } from "react-icons/si";
+import { FaGitAlt } from "react-icons/fa";
+import { SiSqlite } from "react-icons/si";
+import { SiExpress } from "react-icons/si";
 
 const stackItems = [
     {id:1,name:"React",icon:FaReact, color: '#61DAFB'},
@@ -23,8 +28,13 @@ const stackItems = [
     {id:7,name:"Python",icon:FaPython, color: '#3776AB'},
     {id:8,name:"Flutter",icon:FaFlutter, color: '#02569B'},
     {id:9,name:"Java",icon:FaJava, color: '#FF0000'},
-    {id:10,name:"PHP",icon:FaPhp, color: '#777BB4'}
-]
+    {id:10,name:"PHP",icon:FaPhp, color: '#777BB4'},
+    {id:11,name:"Docker",icon:FaDocker, color: '#2496ED'},
+    {id:12,name:"Tailwind",icon:SiTailwindcss, color: '#38BDF8'},
+    {id:13,name:"Git",icon:FaGitAlt, color: '#F05032'},
+    {id:14,name:"SQLite",icon:SiSqlite, color: '#003B57'},
+    {id:15,name:"Express",icon:SiExpress, color: '#000000'},
+];
 
 interface Bullet {
     id: number;
