@@ -345,6 +345,7 @@ export default function SelectedProjectsPage() {
                         onError={(e) => {
                           console.error(`❌ Video failed for ${project.title}:`, getValidImagePath(project.image));
                           // Optionally set a fallback here
+                          e.currentTarget.style.display = 'none'; // Hide the video element
                         }}
                       />
                     ) : (
