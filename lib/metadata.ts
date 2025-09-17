@@ -4,7 +4,7 @@ export const siteConfig = {
   name: 'Gilbert Hasiholan Sibuea',
   title: 'Gilbert Hasiholan Sibuea - Full Stack Developer & Software Engineer',
   description: 'Gilbert Hasiholan Sibuea is a passionate Full Stack Developer and Software Engineer specializing in modern web technologies, mobile applications, and innovative digital solutions.',
-  url: 'https://gilbertdev-portfolio.vercel.app', // Update with your actual domain
+  url: 'https://gilbersibuea.com', // Update with your actual domain
   ogImage: '/profile.png',
   links: {
     twitter: 'https://twitter.com/gilbert_dev', // Update with actual handle
