@@ -169,7 +169,7 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
           year = ?, 
           description = ?, 
           details = ?, 
-        
+          category = ?,
           languages = ?, 
           image_url = ?, 
           github_link = ?, 

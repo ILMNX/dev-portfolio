@@ -6,41 +6,36 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
-// Helper function to validate image URL
-const getValidImageUrl = (url: string | URL | undefined | null): string => {
+// Helper function to check if file is a video
+const isVideoFile = (url: string | URL | undefined | null): boolean => {
+  if (!url) return false;
+  if (url instanceof URL) url = url.toString();
+  if (typeof url !== 'string') return false;
+  return url.includes('.webm') || url.includes('.mp4') || url.includes('.mov');
+};
+
+// Helper function to validate image/video URL
+const getValidMediaUrl = (url: string | URL | undefined | null): string => {
+  // Default fallback video
+  const fallbackVideo = '/project_fallback.webm';
   // Default fallback image
   const fallbackImage = '/proj1.png';
-  
-  // For debugging
-  console.log('Processing image URL:', url);
-  
-  // If it's already a URL object from createObjectURL
+
   if (url instanceof URL) {
     return url.toString();
   }
-  
-  // If it's empty or not a string
   if (!url || typeof url !== 'string') {
-    console.log('Invalid image source:', url);
     return fallbackImage;
   }
-  
-  // Handle blob URLs
   if (url.startsWith('blob:')) {
     return url;
   }
-  
-  // If it's a relative path to uploads folder
   if (url.includes('uploads/')) {
     return url.startsWith('/') ? url : '/' + url;
   }
-  
-  // If it's a relative path, ensure it starts with /
   if (!url.startsWith('http') && !url.startsWith('/')) {
     return '/' + url;
   }
-  
-  // For normal URLs and properly formatted relative paths
   return url;
 }
 
@@ -163,13 +158,13 @@ export function ProjectEditClient({ id }: { id: string }) {
     if (!file) return
 
     // Check file type
-    if (!file.type.includes('image/')) {
-      alert('Please upload an image file')
+    if (!file.type.includes('image/') && !file.type.includes('video/')) {
+      alert('Please upload an image or video file')
       return
     }
 
     // Check file size (limit to 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 11 * 1024 * 1024) {
       alert('File size exceeds 5MB limit')
       return
     }
@@ -409,8 +404,8 @@ export function ProjectEditClient({ id }: { id: string }) {
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                 >
                   <option value="">Select Category</option>
-                  <option value="Web Development">Web Development</option>
-                  <option value="Mobile App">Mobile App</option>
+                  <option value="Web Development">Web </option>
+                  <option value="Mobile App">Mobile</option>
                   <option value="Data">Data</option>
                   <option value="Other">Other</option>
                 </select>
@@ -477,28 +472,56 @@ export function ProjectEditClient({ id }: { id: string }) {
             </div>
             
             <div className="mb-8">
-              <label className="block text-gray-400 mb-2">Project Image</label>
+              <label className="block text-gray-400 mb-2">Project Image / Video</label>
               <div className="flex flex-col space-y-4">
                 {/* Hidden file input */}
                 <input
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept="image/*"
+                  accept="image/*,video/webm"
                   className="hidden"
                 />
                 
-                {/* Image preview or current image */}
+                {/* Image or video preview */}
                 <div className="relative h-48 border-2 border-dashed rounded-lg overflow-hidden border-gray-700 hover:border-gray-500 transition-colors">
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
-                      <Image 
-                        src={getValidImageUrl(imagePreview || form.image)} 
-                        alt="Project thumbnail" 
-                        className="w-full h-full object-cover"
-                        width={600}
-                        height={400}
-                      />
+                      {isVideoFile(imagePreview || form.image) ? (
+                        <video
+                          src={getValidMediaUrl(imagePreview || form.image)}
+                          className="w-full h-full object-cover"
+                          width={600}
+                          height={400}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          onLoadedData={() => {
+                            console.log('✅ Video loaded:', getValidMediaUrl(imagePreview || form.image));
+                          }}
+                          onError={(e) => {
+                            const fallbackVideo = '/project_fallback.webm';
+                            if (e.currentTarget.src !== fallbackVideo) {
+                              e.currentTarget.src = fallbackVideo;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <Image 
+                          src={getValidMediaUrl(imagePreview || form.image)} 
+                          alt="Project thumbnail" 
+                          className="w-full h-full object-cover"
+                          width={600}
+                          height={400}
+                          onError={(e) => {
+                            const fallbackImage = '/proj1.png';
+                            if (e.currentTarget.src !== fallbackImage) {
+                              e.currentTarget.src = fallbackImage;
+                            }
+                          }}
+                        />
+                      )}
                       {isUploading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">
                           <div className="w-3/4 h-2 bg-gray-700 rounded-full overflow-hidden">
@@ -513,7 +536,7 @@ export function ProjectEditClient({ id }: { id: string }) {
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-full">
-                      <p className="text-gray-400">No image selected</p>
+                      <p className="text-gray-400">No image or video selected</p>
                     </div>
                   )}
                 </div>
@@ -529,11 +552,11 @@ export function ProjectEditClient({ id }: { id: string }) {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                   </svg>
-                  Upload Image
+                  Upload Image/Video
                 </motion.button>
                 
                 <p className="text-sm text-gray-400">
-                  Supports JPG, PNG, GIF, WEBP, WEBM(Max size: 5MB)
+                  Supports JPG, PNG, GIF, WEBP, WEBM (Max size: 5MB)
                 </p>
               </div>
             </div>
