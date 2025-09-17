@@ -246,6 +246,7 @@ const ProjectDisplay: React.FC<{
                     onError={(e) => {
                         console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
                         // Optionally set a fallback here
+                        e.currentTarget.style.display = 'none'; // Hide the video element
                     }}
                 />
             ) : (
@@ -394,6 +395,8 @@ const ProjectModal: React.FC<{
                                     }}
                                     onError={(e) => {
                                         console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
+                                        // Optionally set a fallback here
+                                        e.currentTarget.style.display = 'none'; // Hide the video element
                                     }}
                                 />
                             ) : (

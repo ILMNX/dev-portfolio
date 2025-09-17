@@ -222,6 +222,7 @@ const AdminProjects = () => {
                       onError={(e) => {
                         console.error(`❌ Video failed to load for ${project.title}:`, getValidImageUrl(project?.image));
                         // You could set a fallback here if needed
+                        e.currentTarget.style.display = 'none'; // Hide the video element
                       }}
                     />
                   ) : (
