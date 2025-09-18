@@ -10,6 +10,7 @@ import {
     FaGithub
 } from "react-icons/fa";
 import GitHubContributions from "./GitHubContributions";
+import WakatimeTracker from "./WakatimeTracker";
 
 const metrics = [
     { 
@@ -109,6 +110,7 @@ export const KeyMetrics = () => {
 
                 {/* GitHub Contributions Section */}
                 <GitHubContributions username="ILMNX" />
+                <WakatimeTracker />
             </div>
         </motion.section>
     );
