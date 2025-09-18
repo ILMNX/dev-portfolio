@@ -16,8 +16,7 @@ const isVideoFile = (url: string | URL | undefined | null): boolean => {
 
 // Helper function to validate image/video URL
 const getValidMediaUrl = (url: string | URL | undefined | null): string => {
-  // Default fallback video
-  const fallbackVideo = '/project_fallback.webm';
+
   // Default fallback image
   const fallbackImage = '/proj1.png';
 

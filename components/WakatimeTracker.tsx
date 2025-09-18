@@ -14,8 +14,8 @@ interface WakaSummary {
 }
 
 const WakatimeTracker: React.FC = () => {
-  const [hours, setHours] = useState<number>(0);
-  const [minutes, setMinutes] = useState<number>(0);
+  const [, setHours] = useState<number>(0);
+  const [, setMinutes] = useState<number>(0);
   const [text, setText] = useState<string>("0 hrs");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
