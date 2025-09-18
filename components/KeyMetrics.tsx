@@ -9,6 +9,7 @@ import {
     FaGem, 
     FaGithub
 } from "react-icons/fa";
+import GitHubContributions from "./GitHubContributions";
 
 const metrics = [
     { 
@@ -76,7 +77,7 @@ export const KeyMetrics = () => {
                     A quick glance at my journey and achievements as a developer.
                 </motion.p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
                     {metrics.map((metric) => {
                         const Icon = metric.icon;
                         return (
@@ -105,6 +106,9 @@ export const KeyMetrics = () => {
                         );
                     })}
                 </div>
+
+                {/* GitHub Contributions Section */}
+                <GitHubContributions username="ILMNX" />
             </div>
         </motion.section>
     );
