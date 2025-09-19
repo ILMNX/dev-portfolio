@@ -20,18 +20,18 @@ export const metadata: Metadata = generateMetadata({
 
 export default function Home() {
   return (
-   <>
-      <Analytics />
-      <SpeedInsights/>
-      <Navbar />
-      <Hero />
-      <Stack />
-      <LogoAnimation/>
-      <Portfolio/>
-      <KeyMetrics/>
-      <Services/>
-      <Contact/>
-      <Footer/>
-   </>
+  <>
+    <Navbar />
+    <Hero />
+    <Stack />
+    <LogoAnimation/>
+    <Portfolio/>
+    <KeyMetrics/>
+    <Services/>
+    <Contact/>
+    <Analytics />
+    <SpeedInsights/>
+    <Footer/>
+  </>
   );
 }
