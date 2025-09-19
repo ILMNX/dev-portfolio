@@ -10,7 +10,7 @@ import {
     FaGithub
 } from "react-icons/fa";
 import GitHubContributions from "./GitHubContributions";
-import WakatimeTracker from "./WakatimeTracker";
+// import WakatimeTracker from "./WakatimeTracker";
 
 const metrics = [
     { 
