@@ -47,7 +47,7 @@ export const Contact = () => {
                                className="text-xl sm:text-2xl font-semibold hover:text-gray-400 transition duration-300 flex items-center justify-center gap-3"
                             >
                                 <MdEmail className="text-red-400 text-2xl sm:text-3xl" />
-                                devgilberths@gmail.com
+                                dev@gilbertsibuea.com
                             </a>
                         </div>
                         

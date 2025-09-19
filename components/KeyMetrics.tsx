@@ -110,7 +110,7 @@ export const KeyMetrics = () => {
 
                 {/* GitHub Contributions Section */}
                 <GitHubContributions username="ILMNX" />
-                <WakatimeTracker />
+                {/* <WakatimeTracker /> */}
             </div>
         </motion.section>
     );

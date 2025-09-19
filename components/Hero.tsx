@@ -5,62 +5,89 @@ import { motion } from "framer-motion"
 import { FiArrowRight, FiMail } from "react-icons/fi"
 
 export const Hero = () => {
-    const vantaRef = useRef<HTMLDivElement>(null)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vantaEffect = useRef<any>(null)
+    const canvasRef = useRef<HTMLCanvasElement>(null)
 
     useEffect(() => {
-        let threeScript: HTMLScriptElement | null = null;
-        let vantaScript: HTMLScriptElement | null = null;
-        let cleanup = false;
+        const canvas = canvasRef.current
+        if (!canvas) return
 
-        // Dynamically load three.js and vanta.net.min.js from CDN
-        const loadScripts = async () => {
-            if (typeof window === 'undefined') return;
-            // @ts-expect-error asdfasdfasdfasd
-            if (!window.THREE) {
-                threeScript = document.createElement('script');
-                threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
-                threeScript.async = true;
-                document.body.appendChild(threeScript);
-                await new Promise(res => { threeScript!.onload = res; });
-            }
-            vantaScript = document.createElement('script');
-            vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js';
-            vantaScript.async = true;
-            document.body.appendChild(vantaScript);
-            await new Promise(res => { vantaScript!.onload = res; });
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
 
-            if (cleanup) return;
-            // @ts-expect-error asdfasdfasdfas
-            if (window.VANTA && window.VANTA.NET && vantaRef.current) {
-                // @ts-expect-error sadfasdfasdf
-                vantaEffect.current = window.VANTA.NET({
-                    el: vantaRef.current,
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: 0xac9ee3,
-                    points: 9.00,
-                    maxDistance: 22.00,
-                    spacing: 17.00
-                });
-            }
-        };
-        loadScripts();
+        // Set canvas size
+        const resizeCanvas = () => {
+            canvas.width = window.innerWidth
+            canvas.height = window.innerHeight
+        }
+        resizeCanvas()
+        window.addEventListener('resize', resizeCanvas)
+
+        // Lightweight particle system
+        const particles: Array<{
+            x: number
+            y: number
+            vx: number
+            vy: number
+            alpha: number
+        }> = []
+
+        // Create particles
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                alpha: Math.random() * 0.5 + 0.2
+            })
+        }
+
+        // Animation loop
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+            particles.forEach((particle, i) => {
+                // Update position
+                particle.x += particle.vx
+                particle.y += particle.vy
+
+                // Wrap around edges
+                if (particle.x < 0) particle.x = canvas.width
+                if (particle.x > canvas.width) particle.x = 0
+                if (particle.y < 0) particle.y = canvas.height
+                if (particle.y > canvas.height) particle.y = 0
+
+                // Draw particle
+                ctx.beginPath()
+                ctx.arc(particle.x, particle.y, 1, 0, Math.PI * 2)
+                ctx.fillStyle = `rgba(172, 158, 227, ${particle.alpha})`
+                ctx.fill()
+
+                // Draw connections
+                particles.slice(i + 1).forEach(other => {
+                    const dx = particle.x - other.x
+                    const dy = particle.y - other.y
+                    const distance = Math.sqrt(dx * dx + dy * dy)
+
+                    if (distance < 100) {
+                        ctx.beginPath()
+                        ctx.moveTo(particle.x, particle.y)
+                        ctx.lineTo(other.x, other.y)
+                        ctx.strokeStyle = `rgba(172, 158, 227, ${0.1 * (1 - distance / 100)})`
+                        ctx.stroke()
+                    }
+                })
+            })
+
+            requestAnimationFrame(animate)
+        }
+
+        animate()
+
         return () => {
-            cleanup = true;
-            if (vantaEffect.current) {
-                vantaEffect.current.destroy();
-            }
-            if (threeScript) document.body.removeChild(threeScript);
-            if (vantaScript) document.body.removeChild(vantaScript);
-        };
-    }, []);
+            window.removeEventListener('resize', resizeCanvas)
+        }
+    }, [])
 
     const scrollToContact = () => {
         const contactSection = document.querySelector('#contact')
@@ -72,25 +99,16 @@ export const Hero = () => {
 
     return(
         <section id="hero" className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200">
-            {/* Vanta.js background layer */}
-            <div ref={vantaRef} id="vanta-bg" className="absolute inset-0 w-full h-full -z-10" />
-            {/* Grain blur overlay */}
-            <div
-                className="pointer-events-none absolute inset-0 w-full h-full -z-5"
-                style={{
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    background: 'rgba(0,0,0,0.04)',
-                    mixBlendMode: 'soft-light',
-                    opacity: 0.85,
-                    zIndex: -5,
-                    /* Grain effect using CSS noise texture */
-                    backgroundImage: `
-                        repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 8px),
-                        repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 8px)
-                    `,
-                }}
+            {/* Lightweight canvas background */}
+            <canvas 
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full -z-10"
+                style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)' }}
             />
+            
+            {/* Simplified overlay */}
+            <div className="pointer-events-none absolute inset-0 w-full h-full -z-5 bg-black/10" />
+            
             <div className="z-10 flex flex-col items-center">
                 <span className="mb-7 inline-block rounded-full bg-gray-600/50 px-3 py-1.5 text-sm">
                     Open for work
@@ -108,12 +126,8 @@ export const Hero = () => {
                 <div className="flex flex-col sm:flex-row gap-4 items-center">
                     <motion.button
                         onClick={() => window.open('https://www.canva.com/design/DAGhsbBQGPo/Cq0wE9ktnUkrnOQnH4F9KA/view?utm_content=DAGhsbBQGPo&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h6f3875e230', '_blank')}
-                        whileHover={{
-                            scale: 1.05,
-                        }}
-                        whileTap={{
-                            scale: 0.985
-                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.985 }}
                         className="flex w-fit items-center gap-2 rounded-full px-4 py-2 border border-gray-300 shadow-md"
                     >
                         Download CV
@@ -122,12 +136,8 @@ export const Hero = () => {
 
                     <motion.button
                         onClick={scrollToContact}
-                        whileHover={{
-                            scale: 1.05,
-                        }}
-                        whileTap={{
-                            scale: 0.985
-                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.985 }}
                         className="flex w-fit items-center gap-2 rounded-full px-4 py-2 border border-gray-300 shadow-md"
                     >
                         Contact Me!
