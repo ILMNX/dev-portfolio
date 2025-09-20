@@ -7,8 +7,8 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
   const params = await props.params;
   const id = params.id;
   try {
-    console.log('=== GET Individual Project API Called ===');
-    console.log('Project ID:', id);
+    // console.log('=== GET Individual Project API Called ===');
+    // console.log('Project ID:', id);
     
     const projectId = parseInt(id);
     if (isNaN(projectId)) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
     }
     
     const project = await getProjectById(projectId);
-    console.log('Retrieved project:', JSON.stringify(project, null, 2));
+    // console.log('Retrieved project:', JSON.stringify(project, null, 2));
     
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
@@ -53,7 +53,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       imageData = { src: '/proj1.gif' };
     }
     
-    console.log('Processing image data for project update:', JSON.stringify(imageData));
+    // console.log('Processing image data for project update:', JSON.stringify(imageData));
     
     const updatedProject = await updateProject(projectId, {
       title: data.title,
@@ -95,7 +95,7 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
         try {
           const filePath = path.join(process.cwd(), 'public', project.image.src);
           await fs.unlink(filePath);
-          console.log('Deleted image file:', filePath);
+          // console.log('Deleted image file:', filePath);
         } catch (error) {
           console.error('Error deleting image file:', error);
           // Don't fail the deletion if image file deletion fails

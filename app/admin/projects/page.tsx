@@ -216,9 +216,9 @@ const AdminProjects = () => {
                       loop
                       muted
                       playsInline
-                      onLoadedData={() => {
-                        console.log(`✅ Video loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
-                      }}
+                      // onLoadedData={() => {
+                      //   console.log(`✅ Video loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
+                      // }}
                       onError={(e) => {
                         console.error(`❌ Video failed to load for ${project.title}:`, getValidImageUrl(project?.image));
                         // You could set a fallback here if needed
@@ -236,9 +236,9 @@ const AdminProjects = () => {
                         width: '100%',
                         height: '100%'
                       }}
-                      onLoad={() => {
-                        console.log(`✅ Image loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
-                      }}
+                      // onLoad={() => {
+                      //   console.log(`✅ Image loaded successfully for ${project.title}:`, getValidImageUrl(project?.image));
+                      // }}
                       onError={(e) => {
                         // Set fallback image
                         if (!e.currentTarget.src.includes('proj1.gif')) {

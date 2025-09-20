@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
       }
     `;
 
-    console.log('Fetching GitHub contributions for:', username);
-    console.log('Using token:', process.env.NEXT_PUBLIC_GITHUB_TOKEN ? 'Token exists' : 'No token found');
+    // console.log('Fetching GitHub contributions for:', username);
+    // console.log('Using token:', process.env.NEXT_PUBLIC_GITHUB_TOKEN ? 'Token exists' : 'No token found');
 
     const response = await fetch('https://api.github.com/graphql', {
       method: 'POST',
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('GitHub API response:', JSON.stringify(data, null, 2));
+    // console.log('GitHub API response:', JSON.stringify(data, null, 2));
 
     if (data.errors) {
       console.error('GitHub API errors:', data.errors);

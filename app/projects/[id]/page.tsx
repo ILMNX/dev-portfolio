@@ -5,99 +5,45 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Footer } from '@/components/Footer'
 
-// Define the Project type
 interface Project {
-  id: number
-  year: number
-  title: string
-  description: string
+    id: number
+    year: number
+    title: string
+    description: string
     category?: string
-  image: { src: string } | string | null | undefined
-  languages: string[]
-  details: string
-  githubLink: string
-  liveLink: string
+    image: { src: string } | string | null | undefined
+    languages: string[]
+    details: string
+    githubLink: string
+    liveLink: string
 }
 
-// Helper function to ensure valid image URLs (updated for Azure support)
 const getValidImageSrc = (project: Project | null): string => {
-  const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
-  
-  try {
-    if (!project) {
-      console.log('Missing project data');
-      return fallbackImage;
-    }
-
-    console.log('Processing image for project:', project.title);
-    console.log('Image data:', project.image);
-    
-    if (!project.image) {
-      console.log('No image data found');
-      return fallbackImage;
-    }
-    
-    // Handle object with src property
-    if (typeof project.image === 'object' && project.image !== null) {
-      if (!project.image.src || typeof project.image.src !== 'string') {
-        console.log('Invalid src property in image object');
+    const fallbackImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+    try {
+        if (!project || !project.image) {
+            return fallbackImage;
+        }
+        if (typeof project.image === 'object' && project.image !== null) {
+            const src = project.image.src;
+            if (!src || typeof src !== 'string') return fallbackImage;
+            if (src.includes('.blob.core.windows.net')) return src;
+            if (src.includes('uploads/')) return src.startsWith('/') ? src : '/' + src;
+            if (src.startsWith('http')) return src;
+            return src.startsWith('/') ? src : '/' + src;
+        }
+        if (typeof project.image === 'string') {
+            const src = project.image;
+            if (!src.trim() || src.includes('[object Object]')) return fallbackImage;
+            if (src.includes('.blob.core.windows.net')) return src;
+            if (src.includes('uploads/')) return src.startsWith('/') ? src : '/' + src;
+            if (src.startsWith('http')) return src;
+            return src.startsWith('/') ? src : '/' + src;
+        }
         return fallbackImage;
-      }
-      
-      const src = project.image.src;
-      console.log('Valid image src from object:', src);
-      
-      // Check if it's an Azure blob URL
-      if (src.includes('.blob.core.windows.net')) {
-        console.log('✅ Azure blob URL detected:', src);
-        return src;
-      }
-      
-      // Check if it's a local upload
-      if (src.includes('uploads/')) {
-        return src.startsWith('/') ? src : '/' + src;
-      }
-      
-      // Check if it's an absolute URL
-      if (src.startsWith('http')) {
-        return src;
-      }
-      
-      return src.startsWith('/') ? src : '/' + src;
-    }
-    
-    // Handle direct string
-    if (typeof project.image === 'string') {
-      const src = project.image;
-      
-      if (!src.trim() || src.includes('[object Object]')) {
+    } catch {
         return fallbackImage;
-      }
-      
-      // Check if it's an Azure blob URL
-      if (src.includes('.blob.core.windows.net')) {
-        console.log('✅ Azure blob URL from string:', src);
-        return src;
-      }
-      
-      // Check if it's a local upload
-      if (src.includes('uploads/')) {
-        return src.startsWith('/') ? src : '/' + src;
-      }
-      
-      // Check if it's an absolute URL
-      if (src.startsWith('http')) {
-        return src;
-      }
-      
-      return src.startsWith('/') ? src : '/' + src;
     }
-    
-    return fallbackImage;
-  } catch (error) {
-    console.error('Error processing image source:', error);
-    return fallbackImage;
-  }
 };
 
 const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
@@ -111,28 +57,19 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                console.log(`Fetching project with ID: ${params.id}...`)
                 const res = await fetch(`/api/projects/${params.id}`)
                 const data = await res.json()
-                
-                console.log('Project API response:', data);
-                
                 if (data.success) {
-                    console.log('Successfully fetched project:', data.project.title)
-                    console.log('Project image data:', data.project.image);
                     setProject(data.project)
                 } else {
-                    console.error('Failed to fetch project:', data.error)
                     setError(data.error || 'Failed to load project')
                 }
-            } catch (error) {
-                console.error('Error fetching project:', error)
+            } catch {
                 setError('An unexpected error occurred')
             } finally {
                 setLoading(false)
             }
         }
-
         fetchProject()
     }, [params.id])
 
@@ -214,7 +151,7 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                     </div>
 
                     <div className="grid lg:grid-cols-2 gap-12">
-                        {/* Carousel Section - Fixed to use regular img tag */}
+                        {/* Carousel Section */}
                         <div className="relative h-[500px] overflow-hidden rounded-xl bg-gray-800">
                             <motion.div
                                 key={currentImage}
@@ -240,7 +177,6 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                                 }}
                                 className="absolute w-full h-full"
                             >
-                                {/* Replace Next.js Image with regular img tag for Azure support */}
                                 <img
                                     src={getValidImageSrc(project)}
                                     alt={project.title}
@@ -250,11 +186,7 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                                         width: '100%',
                                         height: '100%'
                                     }}
-                                    onLoad={() => {
-                                        console.log('✅ Project detail image loaded successfully');
-                                    }}
                                     onError={(e) => {
-                                        console.error('❌ Project detail image failed to load:', e.currentTarget.src);
                                         e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
                                     }}
                                 />
@@ -295,12 +227,6 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                                         </span>
                                     ))}
                                 </div>
-                            </div>
-
-                            {/* Debug info */}
-                            <div className="mb-6 p-3 bg-gray-800 rounded text-xs">
-                                <p><strong>Image URL:</strong> {getValidImageSrc(project)}</p>
-                                <p><strong>Raw Image Data:</strong> {JSON.stringify(project.image)}</p>
                             </div>
 
                             <div className="flex gap-4">

@@ -7,18 +7,10 @@ export async function GET() {
     const projects = await getSelectedProjects();
     
     // Enhanced debugging
-    console.log('API Selected Projects - FULL DATA: ', JSON.stringify(projects, null, 2));
+    // console.log('API Selected Projects - FULL DATA: ', JSON.stringify(projects, null, 2));
     
     // Debug each project's image separately
-    projects.forEach((project, index) => {
-      console.log(`Project ${index + 1} (${project.title}) - Image data:`, 
-        typeof project.image === 'object' ? JSON.stringify(project.image) : project.image);
-      
-      if (project.image && typeof project.image === 'object' && project.image.src) {
-        console.log(`Project ${index + 1} src type:`, typeof project.image.src);
-        console.log(`Project ${index + 1} src value:`, project.image.src);
-      }
-    });
+    // Debugging code for project images can be safely removed after finished debugging.
     
     return NextResponse.json({ 
       success: true,

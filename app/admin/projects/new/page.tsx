@@ -162,7 +162,7 @@ const NewProject = () => {
         
         if (data.success) {
             setUploadProgress(100)
-            console.log('File uploaded to Azure:', data.imageUrl)
+            // console.log('File uploaded to Azure:', data.imageUrl)
             return data.imageUrl // This will be the Azure blob URL
         } else {
             throw new Error(data.error || 'Upload failed')

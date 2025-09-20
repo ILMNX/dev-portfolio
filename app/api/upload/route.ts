@@ -11,7 +11,7 @@ export const config = {
 };
 
 export async function POST(req: NextRequest) {
-  console.log('=== UPLOAD API ROUTE CALLED ===');
+  // console.log('=== UPLOAD API ROUTE CALLED ===');
 
   try {
     const formData = await req.formData();
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // Return the public URL path
     const imageUrl = `/uploads/projects/${fileName}`;
     
-    console.log('File saved successfully:', imageUrl);
+    // console.log('File saved successfully:', imageUrl);
     
     return NextResponse.json({ 
       success: true, 

@@ -31,12 +31,12 @@ const getValidImageSrc = (project: Project): string => {
   try {
     // Safety check for missing project
     if (!project) {
-      console.log('Missing project data');
+      // console.log('Missing project data');
       return fallbackImage;
     }
 
     // Log actual image data for debugging
-    console.log('Image data type:', typeof project.image, 'Value:', project.image);
+    // console.log('Image data type:', typeof project.image, 'Value:', project.image);
     
     // Case 1: No image data
     if (!project.image) {
@@ -67,7 +67,7 @@ const getValidImageSrc = (project: Project): string => {
       
       // Ensure src exists and is a string
       if (!src || typeof src !== 'string') {
-        console.log('Invalid src property:', src);
+        // console.log('Invalid src property:', src);
         return fallbackImage;
       }
       
@@ -82,10 +82,10 @@ const getValidImageSrc = (project: Project): string => {
     }
     
     // Case 4: Unexpected image format
-    console.log('Unexpected image format:', project.image);
+    // console.log('Unexpected image format:', project.image);
     return fallbackImage;
   } catch (error) {
-    console.error('Error processing image source:', error);
+    // console.error('Error processing image source:', error);
     return fallbackImage;
   }
 };
@@ -106,7 +106,7 @@ const ProjectsList = ({ projects }: ProjectsListProps) => {
       {projects.map((project: Project, index: number) => {
         // Get image source with extra logging
         const imageSrc = getValidImageSrc(project);
-        console.log(`Project ${project.id} image source:`, imageSrc);
+        // console.log(`Project ${project.id} image source:`, imageSrc);
         
         return (
           <Link href={`/projects/${project.id}`} key={project.id}>

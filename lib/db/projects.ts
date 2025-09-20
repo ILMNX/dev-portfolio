@@ -58,7 +58,7 @@ function rowToProject(row: ProjectRow): Project {
     }
   }
 
-  console.log(`rowToProject ID ${row.id}: Final imageSrc = "${imageSrc}"`);
+  // console.log(`rowToProject ID ${row.id}: Final imageSrc = "${imageSrc}"`);
 
   return {
     id: row.id,

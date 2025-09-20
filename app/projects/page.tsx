@@ -7,9 +7,6 @@ import { headers } from 'next/headers'
 // Improved fetch projects function
 async function getProjects() {
     try {
-        console.log('Environment:', process.env.NODE_ENV);
-        console.log('Fetching projects from API...');
-        
         // Determine if we're in development or production
         const isDev = process.env.NODE_ENV === 'development';
         
@@ -30,8 +27,8 @@ async function getProjects() {
         
         // Use a correctly constructed URL with explicit protocol
         const apiUrl = `${baseUrl}/api/projects`;
-        console.log('API URL:', apiUrl);
-        
+        // console.log('API URL:', apiUrl);
+
         const res = await fetch(apiUrl, {
             cache: 'no-store',
             headers: {
@@ -46,11 +43,11 @@ async function getProjects() {
         
         const data = await res.json();
         if (data.success) {
-            console.log('Successfully fetched projects:', data.projects.length);
+            // console.log('Successfully fetched projects:', data.projects.length);
             return data.projects;
         }
-        
-        console.error('Failed to fetch projects:', data);
+
+        // console.error('Failed to fetch projects:', data);
         return [];
     } catch (error) {
         console.error('Error fetching projects:', error);

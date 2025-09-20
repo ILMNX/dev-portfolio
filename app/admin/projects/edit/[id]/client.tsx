@@ -496,9 +496,9 @@ export function ProjectEditClient({ id }: { id: string }) {
                           loop
                           muted
                           playsInline
-                          onLoadedData={() => {
-                            console.log('✅ Video loaded:', getValidMediaUrl(imagePreview || form.image));
-                          }}
+                          // onLoadedData={() => {
+                          //   console.log('✅ Video loaded:', getValidMediaUrl(imagePreview || form.image));
+                          // }}
                           onError={(e) => {
                             const fallbackVideo = '/project_fallback.webm';
                             if (e.currentTarget.src !== fallbackVideo) {

@@ -20,7 +20,7 @@ interface Project {
 
 // Helper function to ensure valid image paths (updated for Azure support)
 const getValidImagePath = (image: { src: string } | string): string => {
-  console.log('Processing image in selected projects page:', image);
+  // console.log('Processing image in selected projects page:', image);
   
   // Default fallback
   const fallback = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlByb2plY3QgSW1hZ2U8L3RleHQ+PC9zdmc+';
@@ -28,7 +28,7 @@ const getValidImagePath = (image: { src: string } | string): string => {
   // Handle image object with src property
   if (typeof image === 'object' && image !== null && 'src' in image) {
     const src = image.src;
-    console.log('Image src from object:', src);
+    // console.log('Image src from object:', src);
     
     if (!src || src.trim() === '') {
       return fallback;
@@ -36,14 +36,14 @@ const getValidImagePath = (image: { src: string } | string): string => {
     
     // Check if it's an Azure blob URL
     if (src.includes('.blob.core.windows.net')) {
-      console.log('✅ Azure blob URL detected:', src);
+      // console.log('✅ Azure blob URL detected:', src);
       return src;
     }
     
     // Check if it's a local upload
     if (src.includes('uploads/')) {
       const result = src.startsWith('/') ? src : '/' + src;
-      console.log('Fixed upload path:', result);
+      // console.log('Fixed upload path:', result);
       return result;
     }
     
@@ -59,7 +59,7 @@ const getValidImagePath = (image: { src: string } | string): string => {
   // Handle direct string path
   if (typeof image === 'string') {
     const src = image;
-    console.log('Image string path:', src);
+    // console.log('Image string path:', src);
     
     if (!src || src.trim() === '') {
       return fallback;
@@ -273,9 +273,9 @@ export default function SelectedProjectsPage() {
                                 loop
                                 muted
                                 playsInline
-                                onLoadedData={() => {
-                                  console.log(`✅ Video loaded for ${project.title}:`, getValidImagePath(project.image));
-                                }}
+                                // onLoadedData={() => {
+                                //   console.log(`✅ Video loaded for ${project.title}:`, getValidImagePath(project.image));
+                                // }}
                                 onError={(e) => {
                                   console.error(`❌ Video failed for ${project.title}:`, getValidImagePath(project.image));
                                   // Optionally set a fallback here
@@ -288,9 +288,9 @@ export default function SelectedProjectsPage() {
                                 alt={project.title}
                                 className="w-full h-full object-cover"
                                 style={{ objectFit: 'cover' }}
-                                onLoad={() => {
-                                  console.log(`✅ Image loaded for ${project.title}:`, getValidImagePath(project.image));
-                                }}
+                                // onLoad={() => {
+                                //   console.log(`✅ Image loaded for ${project.title}:`, getValidImagePath(project.image));
+                                // }}
                                 onError={(e) => {
                                   if (!e.currentTarget.src.includes('proj1.gif')) {
                                     e.currentTarget.src = '/proj1.gif';
@@ -339,9 +339,9 @@ export default function SelectedProjectsPage() {
                         loop
                         muted
                         playsInline
-                        onLoadedData={() => {
-                          console.log(`✅ Video loaded for ${project.title}:`, getValidImagePath(project.image));
-                        }}
+                        // onLoadedData={() => {
+                        //   console.log(`✅ Video loaded for ${project.title}:`, getValidImagePath(project.image));
+                        // }}
                         onError={(e) => {
                           console.error(`❌ Video failed for ${project.title}:`, getValidImagePath(project.image));
                           // Optionally set a fallback here
@@ -354,9 +354,9 @@ export default function SelectedProjectsPage() {
                         alt={project.title}
                         className="w-full h-full object-cover"
                         style={{ objectFit: 'cover' }}
-                        onLoad={() => {
-                          console.log(`✅ Image loaded for ${project.title}:`, getValidImagePath(project.image));
-                        }}
+                        // onLoad={() => {
+                        //   console.log(`✅ Image loaded for ${project.title}:`, getValidImagePath(project.image));
+                        // }}
                         onError={(e) => {
                           if (!e.currentTarget.src.includes('proj1.gif')) {
                             e.currentTarget.src = '/proj1.gif';

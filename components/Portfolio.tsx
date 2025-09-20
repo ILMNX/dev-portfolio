@@ -240,11 +240,11 @@ const ProjectDisplay: React.FC<{
                     loop
                     muted
                     playsInline
-                    onLoadedData={() => {
-                        console.log(`✅ Video loaded for ${project.title}:`, getValidImageSrc(project));
-                    }}
+                    // onLoadedData={() => {
+                    //     console.log(`✅ Video loaded for ${project.title}:`, getValidImageSrc(project));
+                    // }}
                     onError={(e) => {
-                        console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
+                        // console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
                         // Optionally set a fallback here
                         e.currentTarget.style.display = 'none'; // Hide the video element
                     }}
@@ -390,11 +390,11 @@ const ProjectModal: React.FC<{
                                     loop
                                     muted
                                     playsInline
-                                    onLoadedData={() => {
-                                        console.log(`✅ Video loaded for ${project.title}:`, getValidImageSrc(project));
-                                    }}
+                                    // onLoadedData={() => {
+                                    //     console.log(`✅ Video loaded for ${project.title}:`, getValidImageSrc(project));
+                                    // }}
                                     onError={(e) => {
-                                        console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
+                                        // console.error(`❌ Video failed for ${project.title}:`, getValidImageSrc(project));
                                         // Optionally set a fallback here
                                         e.currentTarget.style.display = 'none'; // Hide the video element
                                     }}
