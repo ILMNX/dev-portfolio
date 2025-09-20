@@ -85,7 +85,7 @@ const getValidImageSrc = (project: Project): string => {
     // console.log('Unexpected image format:', project.image);
     return fallbackImage;
   } catch (error) {
-    // console.error('Error processing image source:', error);
+    console.error('Error processing image source:', error);
     return fallbackImage;
   }
 };
