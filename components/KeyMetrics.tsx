@@ -1,7 +1,7 @@
 "use client"
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { 
     FaBolt, 
     FaRocket, 
@@ -50,50 +50,87 @@ const metrics = [
     },
 ];
 
+const containerVariants = {
+    hidden: {},
+    visible: {
+        transition: {
+            staggerChildren: 0.18,
+            delayChildren: 0.2,
+        }
+    }
+};
+
+const metricVariants = {
+    hidden: { opacity: 0, y: 80, scale: 0.8, rotate: -10 },
+    visible: { 
+        opacity: 1, 
+        y: 0, 
+        scale: 1, 
+        rotate: 0,
+        transition: {
+            type: "spring",
+            stiffness: 120,
+            damping: 14
+        }
+    }
+};
+
 export const KeyMetrics = () => {
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true, margin: "-100px" });
+
     return (
         <motion.section
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            ref={ref}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            variants={containerVariants}
             className="px-4 py-32 text-white glass relative overflow-hidden"
             id="about"
         >
             <div className="container mx-auto">
                 <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.8 }}
+                    initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                    animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+                    transition={{ delay: 0.2, duration: 0.8, type: "spring", stiffness: 100 }}
                     className="text-6xl font-bold mb-4"
                 >
                     Developer Stats
                 </motion.h2>
                 
                 <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: 0.3, duration: 0.7, type: "spring", stiffness: 80 }}
                     className="text-gray-400 mb-12 text-lg"
                 >
                     A quick glance at my journey and achievements as a developer.
                 </motion.p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
+                <motion.div
+                    className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate={inView ? "visible" : "hidden"}
+                >
                     {metrics.map((metric) => {
                         const Icon = metric.icon;
                         return (
                             <motion.div
                                 key={metric.id}
-                                whileHover={{ scale: 1.04, boxShadow: "0 8px 32px 0 rgba(80,80,120,0.15)" }}
-                                whileTap={{ scale: 0.98 }}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3, }}
+                                variants={metricVariants}
+                                whileHover={{ scale: 1.08, boxShadow: "0 12px 32px 0 rgba(80,80,120,0.18)", rotate: 2 }}
+                                whileTap={{ scale: 0.97, rotate: -2 }}
                                 className="bg-white/5 rounded-xl border border-white/10 p-8 shadow-lg backdrop-blur-md"
                             >
-                                <div className="flex justify-center mb-4">
-                                    <Icon className="text-4xl text-violet-300" />
-                                </div>
+                                <motion.div
+                                    initial={{ scale: 0.7, opacity: 0 }}
+                                    animate={inView ? { scale: 1, opacity: 1 } : {}}
+                                    transition={{ duration: 0.5, type: "spring", stiffness: 120 }}
+                                    className="flex justify-center mb-4"
+                                >
+                                    <Icon className="text-4xl text-violet-300 drop-shadow-lg" />
+                                </motion.div>
                                 <h3 className="text-3xl font-bold mb-2 text-center text-white">
                                     {metric.value}
                                 </h3>
@@ -106,10 +143,16 @@ export const KeyMetrics = () => {
                             </motion.div>
                         );
                     })}
-                </div>
+                </motion.div>
 
                 {/* GitHub Contributions Section */}
-                <GitHubContributions username="ILMNX" />
+                <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: 0.7, duration: 0.8, type: "spring", stiffness: 80 }}
+                >
+                    <GitHubContributions username="ILMNX" />
+                </motion.div>
                 {/* <WakatimeTracker /> */}
             </div>
         </motion.section>
