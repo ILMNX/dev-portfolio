@@ -1,11 +1,6 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss"
 
 const config: Config = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
   theme: {
     extend: {
       colors: {
@@ -14,6 +9,17 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  // @ts-expect-error - safelist exists in Tailwind v4 but not in types
+  safelist: [
+    "bg-gradient-to-br",
+    "from-slate-900/50",
+    "via-purple-900/20",
+    "to-slate-900/50",
+    "backdrop-blur-sm",
+    "backdrop-blur-md",
+    "bg-white/5",
+    "border-white/10",
+  ],
 }
+
 export default config
