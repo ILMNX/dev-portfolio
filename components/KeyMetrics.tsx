@@ -85,7 +85,7 @@ export const KeyMetrics = () => {
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
             variants={containerVariants}
-            className="px-4 py-32 text-white glass relative overflow-hidden"
+            className="px-4 py-32 text-white bg-gradient-to-br from-slate-900/50 via-purple-900/20 to-slate-900/50 backdrop-blur-sm relative overflow-hidden"
             id="about"
         >
             <div className="container mx-auto">
