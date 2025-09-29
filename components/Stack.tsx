@@ -381,7 +381,10 @@ export const Stack = () => {
     const isMobile = gameArea.width < 600;
 
     return (
-         <section className='py-16 bg-gradient-to-br from-slate-900/50 via-purple-900/20 to-slate-900/50 backdrop-blur-sm relative overflow-hidden' id='stack'>
+         <section 
+            className='glass py-16 bg-gradient-to-br from-slate-900/50 via-purple-900/20 to-slate-900/50 backdrop-blur-sm relative overflow-hidden rounded-t-2xl' 
+            id='stack'
+         >
             {/* Fixed background particles - only render on client */}
             {isClient && (
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">

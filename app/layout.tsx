@@ -3,6 +3,7 @@
 import { Poppins } from "next/font/google"
 import "./globals.css"
 import ClientWrapper from '@/components/ClientWrapper'
+import { DarkLightMode } from "@/components/DarkLightMode"
 import { ThemeProvider } from "next-themes"
 import { siteConfig, personStructuredData, websiteStructuredData } from "@/lib/metadata"
 
@@ -55,6 +56,9 @@ export default function RootLayout({
             {children}
           </ClientWrapper>
         </ThemeProvider>
+        <div className="fixed top-4 right-4 z-50">
+          <DarkLightMode />
+        </div>
       </body>
     </html>
   )

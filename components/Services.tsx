@@ -7,7 +7,10 @@ export const Services = () => {
         {id:5, title: "Artificial Intelligence", description: "I create artificial intelligence program that will help your business to be more efficient and effective."},
     ]
     return (
-        <section className="text-white py-20 px-4 md:px-8" id="services">
+        <section 
+            className="bg-black text-white py-20 px-4" 
+            id="services"
+        >
             <div className="container mx-auto flex flex-col md:flex-row">
                 <div className="md:w-1/3 pr-8 mb-12 md:mb-0">
                     <h2 className="text-4xl sm:text-5xl md:text-6xl text-purple-300 font-extrabold md:sticky md:top-20">

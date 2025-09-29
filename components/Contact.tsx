@@ -6,7 +6,7 @@ import { MdEmail } from "react-icons/md"
 
 export const Contact = () => {
     return(
-        <section id="contact" className="overflow-x-clip py-32 text-white">
+        <section id="contact" className="overflow-x-clip py-32 text-white rounded-t-3xl">
             <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
                     initial={{opacity: 0, y: 20}}
