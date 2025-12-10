@@ -474,8 +474,31 @@ const NewProject = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                   </svg>
-                  Upload Image/Video
+                  {uploadedImage ? 'Change Image/Video' : 'Upload Image/Video'}
                 </motion.button>
+                
+                {/* File selected indicator */}
+                {uploadedImage && (
+                  <div className="flex items-center gap-2 p-3 bg-green-900/30 border border-green-700 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-green-400 text-sm">
+                      File selected: <strong>{uploadedImage.name}</strong> ({(uploadedImage.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadedImage(null);
+                        setImagePreview('');
+                        setForm(prev => ({ ...prev, image: '/project_fallback.webm' }));
+                      }}
+                      className="ml-auto text-red-400 hover:text-red-300 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
                 
                 {/* Updated help text */}
                 <p className="text-sm text-gray-400">

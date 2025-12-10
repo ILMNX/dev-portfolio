@@ -4,11 +4,9 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// Route segment config for App Router - increase body size limit for video uploads
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow up to 60 seconds for large uploads
 
 export async function POST(req: NextRequest) {
   // console.log('=== UPLOAD API ROUTE CALLED ===');
@@ -21,21 +19,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
     }
     
-    // Check if file is an image, GIF, or WebM
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/webm'];
+    // Check if file is an image, GIF, or video
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'video/webm', 'video/mp4', 'video/mov', 'video/quicktime'
+    ];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Invalid file type. Only JPG, PNG, GIF, WebP, and WebM files are allowed.' 
+        error: 'Invalid file type. Only JPG, PNG, GIF, WebP, WebM, MP4, and MOV files are allowed.' 
       }, { status: 400 });
     }
     
-    // Check file size (limit to 10MB for GIFs and WebM, 5MB for others)
-    const maxSize = (file.type === 'image/gif' || file.type === 'video/webm') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    // Check file size (limit based on type: 50MB for videos, 10MB for GIFs, 5MB for images)
+    let maxSize: number;
+    if (file.type.startsWith('video/')) {
+      maxSize = 50 * 1024 * 1024; // 50MB for videos
+    } else if (file.type === 'image/gif') {
+      maxSize = 10 * 1024 * 1024; // 10MB for GIFs
+    } else {
+      maxSize = 5 * 1024 * 1024; // 5MB for images
+    }
+    
     if (file.size > maxSize) {
+      const sizeLimit = file.type.startsWith('video/') ? '50MB' : 
+                       file.type === 'image/gif' ? '10MB' : '5MB';
       return NextResponse.json({ 
         success: false, 
-        error: `File size exceeds ${(file.type === 'image/gif' || file.type === 'video/webm') ? '10MB' : '5MB'} limit` 
+        error: `File size exceeds ${sizeLimit} limit` 
       }, { status: 400 });
     }
     

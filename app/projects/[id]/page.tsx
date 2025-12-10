@@ -208,11 +208,25 @@ const ProjectDetail = (props: { params: Promise<{ id: string }> }) => {
                         </div>
 
                         {/* Project Details Section */}
-                        <div className="bg-gray-900 p-8 rounded-xl">
+                        <div className="bg-gray-900 p-8 rounded-xl max-h-[500px] overflow-y-auto">
                             <div className="mb-6">
                                 <p className="text-gray-400 text-lg">{project.year}</p>
                                 <h2 className="text-4xl font-bold mb-4">{project.title}</h2>
-                                <p className="text-gray-300 mb-6">{project.details}</p>
+                                
+                                {/* Description - Short summary */}
+                                <p className="text-gray-300 mb-4 text-lg font-medium">
+                                    {project.description}
+                                </p>
+                                
+                                {/* Details - Full explanation */}
+                                {project.details && (
+                                    <div className="border-t border-gray-700 pt-4 mt-4">
+                                        <h3 className="text-lg font-semibold mb-2 text-violet-400">Details</h3>
+                                        <p className="text-gray-400 whitespace-pre-line leading-relaxed">
+                                            {project.details}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mb-6">

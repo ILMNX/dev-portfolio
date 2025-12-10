@@ -7,10 +7,17 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 // Helper function to check if file is a video
-const isVideoFile = (url: string | URL | undefined | null): boolean => {
+const isVideoFile = (url: string | URL | undefined | null, fileType?: string): boolean => {
+  // Check file type first (for blob URLs from newly uploaded files)
+  if (fileType && fileType.startsWith('video/')) {
+    return true;
+  }
+  
   if (!url) return false;
   if (url instanceof URL) url = url.toString();
   if (typeof url !== 'string') return false;
+  
+  // Check URL extension
   return url.includes('.webm') || url.includes('.mp4') || url.includes('.mov');
 };
 
@@ -46,6 +53,8 @@ export function ProjectEditClient({ id }: { id: string }) {
   const [projectNotFound, setProjectNotFound] = useState(false)
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
+  const [uploadedFileType, setUploadedFileType] = useState<string>('') // Track uploaded file type
+  const [originalImage, setOriginalImage] = useState<string>('/proj1.png') // Store original image for reset
   const [uploadProgress, setUploadProgress] = useState<number>(0)
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -87,6 +96,8 @@ export function ProjectEditClient({ id }: { id: string }) {
       const data = await response.json()
       
       if (data.success && data.project) {
+        const imageUrl = data.project.image.src || '/proj1.png';
+        setOriginalImage(imageUrl); // Store original image
         setForm({
           title: data.project.title,
           year: data.project.year,
@@ -96,7 +107,7 @@ export function ProjectEditClient({ id }: { id: string }) {
           languages: data.project.languages,
           githubLink: data.project.githubLink || '',
           liveLink: data.project.liveLink || '',
-          image: data.project.image.src || '/proj1.png'
+          image: imageUrl
         })
       } else {
         setProjectNotFound(true)
@@ -156,19 +167,35 @@ export function ProjectEditClient({ id }: { id: string }) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Check file type
-    if (!file.type.includes('image/') && !file.type.includes('video/')) {
-      alert('Please upload an image or video file')
+    // Check file type - now includes video formats
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'video/webm', 'video/mp4', 'video/mov'
+    ]
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload an image file (JPG, PNG, GIF, WebP) or video file (WebM, MP4, MOV)')
       return
     }
 
-    // Check file size (limit to 5MB)
-    if (file.size > 11 * 1024 * 1024) {
-      alert('File size exceeds 5MB limit')
+    // Check file size (limit based on type)
+    let maxSize
+    if (file.type.startsWith('video/')) {
+      maxSize = 50 * 1024 * 1024 // 50MB for videos
+    } else if (file.type === 'image/gif') {
+      maxSize = 10 * 1024 * 1024 // 10MB for GIFs
+    } else {
+      maxSize = 5 * 1024 * 1024 // 5MB for images
+    }
+
+    if (file.size > maxSize) {
+      const sizeLimit = file.type.startsWith('video/') ? '50MB' : 
+                       file.type === 'image/gif' ? '10MB' : '5MB'
+      alert(`File size exceeds ${sizeLimit} limit`)
       return
     }
 
     setUploadedImage(file)
+    setUploadedFileType(file.type) // Store the file type for preview detection
     
     // Create a preview URL
     const previewUrl = URL.createObjectURL(file)
@@ -403,10 +430,11 @@ export function ProjectEditClient({ id }: { id: string }) {
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                 >
                   <option value="">Select Category</option>
-                  <option value="Web Development">Web </option>
-                  <option value="Mobile App">Mobile</option>
+                  <option value="Web">Web</option>
+                  <option value="Mobile">Mobile</option>
                   <option value="Data">Data</option>
-                  <option value="Other">Other</option>
+                  <option value="ML & AI">ML & AI</option>
+                  <option value="Others">Others</option>
                 </select>
             </div>
             
@@ -478,7 +506,7 @@ export function ProjectEditClient({ id }: { id: string }) {
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept="image/*,video/webm"
+                  accept="image/*,video/webm,video/mp4,video/mov,.gif,.webm,.mp4,.mov"
                   className="hidden"
                 />
                 
@@ -486,8 +514,9 @@ export function ProjectEditClient({ id }: { id: string }) {
                 <div className="relative h-48 border-2 border-dashed rounded-lg overflow-hidden border-gray-700 hover:border-gray-500 transition-colors">
                   {imagePreview || form.image ? (
                     <div className="relative w-full h-full">
-                      {isVideoFile(imagePreview || form.image) ? (
+                      {isVideoFile(imagePreview || form.image, imagePreview ? uploadedFileType : undefined) ? (
                         <video
+                          key={imagePreview || form.image} // Force re-render when source changes
                           src={getValidMediaUrl(imagePreview || form.image)}
                           className="w-full h-full object-cover"
                           width={600}
@@ -496,9 +525,6 @@ export function ProjectEditClient({ id }: { id: string }) {
                           loop
                           muted
                           playsInline
-                          // onLoadedData={() => {
-                          //   console.log('✅ Video loaded:', getValidMediaUrl(imagePreview || form.image));
-                          // }}
                           onError={(e) => {
                             const fallbackVideo = '/project_fallback.webm';
                             if (e.currentTarget.src !== fallbackVideo) {
@@ -551,11 +577,36 @@ export function ProjectEditClient({ id }: { id: string }) {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
                   </svg>
-                  Upload Image/Video
+                  {uploadedImage ? 'Change Image/Video' : 'Upload Image/Video'}
                 </motion.button>
                 
+                {/* File selected indicator */}
+                {uploadedImage && (
+                  <div className="flex items-center gap-2 p-3 bg-green-900/30 border border-green-700 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-green-400 text-sm">
+                      New file selected: <strong>{uploadedImage.name}</strong> ({(uploadedImage.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadedImage(null);
+                        setImagePreview('');
+                        setUploadedFileType('');
+                        // Reset to original image
+                        setForm(prev => ({ ...prev, image: originalImage }));
+                      }}
+                      className="ml-auto text-red-400 hover:text-red-300 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+                
                 <p className="text-sm text-gray-400">
-                  Supports JPG, PNG, GIF, WEBP, WEBM (Max size: 5MB)
+                  Supports JPG, PNG, GIF, WEBP, WEBM, MP4, MOV (Max size: 5MB for images, 10MB for GIFs, 50MB for videos)
                 </p>
               </div>
             </div>

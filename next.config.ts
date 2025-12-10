@@ -14,8 +14,12 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     // Ensure proper metadata handling in Next.js 15.3.0
-    serverComponentsExternalPackages: []
-  }
+    serverComponentsExternalPackages: [],
+    // Increase body size limit for video uploads (50MB)
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
 };
 
 export default nextConfig;

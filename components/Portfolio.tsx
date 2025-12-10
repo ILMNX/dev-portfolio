@@ -273,8 +273,8 @@ const ProjectDisplay: React.FC<{
                                 <h3 className={`font-bold text-white mb-2 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>
                                     {project.title}
                                 </h3>
-                                <p className={`text-white/90 leading-relaxed ${isMobile ? 'text-xs' : 'text-xs'} max-w-2xl`}>
-                                    {project.details || project.description}
+                                <p className={`text-white/90 leading-relaxed ${isMobile ? 'text-xs' : 'text-sm'} max-w-2xl`}>
+                                    {project.description}
                                 </p>
                             </div>
 
@@ -408,6 +408,26 @@ const ProjectModal: React.FC<{
                             )}
                             {/* Gradient overlay for text readability */}
                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent h-32" />
+                            
+                            {/* Technology overlay - bottom left */}
+                            {project.languages && project.languages.length > 0 && (
+                                <div className={`absolute bottom-4 left-4 z-10 ${isMobile ? 'max-w-[70%]' : 'max-w-[50%]'}`}>
+                                    <div className="flex flex-wrap gap-2">
+                                        {project.languages.map((lang, idx) => (
+                                            <span 
+                                                key={idx} 
+                                                className={`
+                                                    px-3 py-1.5 rounded-lg text-white/95 bg-black/60 backdrop-blur-md
+                                                    border border-white/20 shadow-lg
+                                                    ${isMobile ? 'text-xs' : 'text-sm'}
+                                                `}
+                                            >
+                                                {lang}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         
                         {/* Compact Info Section */}
@@ -421,7 +441,7 @@ const ProjectModal: React.FC<{
                                     ${isMobile ? '' : 'lg:flex-row lg:items-center lg:justify-between'}
                                 `}>
                                     {/* Project Info */}
-                                    <div className="flex-1">
+                                    <div className="flex-1 max-h-[40vh] overflow-y-auto pr-2">
                                         <h2 className={`
                                             font-bold text-white mb-2
                                             ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'}
@@ -429,13 +449,26 @@ const ProjectModal: React.FC<{
                                             {project.title}
                                         </h2>
                                         
+                                        {/* Description - Short summary */}
                                         <p className={`
-                                            text-white/80 leading-relaxed mb-3
-                                            ${isMobile ? 'text-sm' : 'text-base lg:text-sm'}
-                                            ${isMobile ? 'line-clamp-2' : 'line-clamp-1 lg:line-clamp-2'}
+                                            text-white/90 leading-relaxed mb-3 font-medium
+                                            ${isMobile ? 'text-sm' : 'text-base'}
                                         `}>
-                                            {project.details || project.description}
+                                            {project.description}
                                         </p>
+                                        
+                                        {/* Details - Full explanation with scroll */}
+                                        {project.details && (
+                                            <div className="border-t border-white/20 pt-3 mt-3">
+                                                <h4 className="text-sm font-semibold mb-2 text-violet-400">Details</h4>
+                                                <p className={`
+                                                    text-white/70 leading-relaxed whitespace-pre-line
+                                                    ${isMobile ? 'text-xs' : 'text-sm'}
+                                                `}>
+                                                    {project.details}
+                                                </p>
+                                            </div>
+                                        )}
                                         
                                         {/* Technologies - Compact display */}
                                         {project.languages && project.languages.length > 0 && (
