@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 
 // Helper function to check if file is a video
 const isVideoFile = (url: string | URL | undefined | null, fileType?: string): boolean => {
@@ -33,8 +32,9 @@ const getValidMediaUrl = (url: string | URL | undefined | null): string => {
   if (!url || typeof url !== 'string') {
     return fallbackImage;
   }
+  // Blob URLs are temporary and only valid during the upload session
   if (url.startsWith('blob:')) {
-    return url;
+    return fallbackImage;
   }
   if (url.includes('uploads/')) {
     return url.startsWith('/') ? url : '/' + url;
@@ -58,6 +58,12 @@ export function ProjectEditClient({ id }: { id: string }) {
   const [uploadProgress, setUploadProgress] = useState<number>(0)
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // GIF upload state
+  const [uploadedGif, setUploadedGif] = useState<File | null>(null)
+  const [gifPreview, setGifPreview] = useState<string>('')
+  const [gifUploadProgress, setGifUploadProgress] = useState<number>(0)
+  const [isUploadingGif, setIsUploadingGif] = useState<boolean>(false)
+  const gifFileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   
@@ -73,7 +79,8 @@ export function ProjectEditClient({ id }: { id: string }) {
     languages: [''],
     githubLink: '',
     liveLink: '',
-    image: '/proj1.png' // Default image path
+    image: '/proj1.png',
+    gifUrl: ''
   })
 
   useEffect(() => {
@@ -97,7 +104,7 @@ export function ProjectEditClient({ id }: { id: string }) {
       
       if (data.success && data.project) {
         const imageUrl = data.project.image.src || '/proj1.png';
-        setOriginalImage(imageUrl); // Store original image
+        setOriginalImage(imageUrl);
         setForm({
           title: data.project.title,
           year: data.project.year,
@@ -107,8 +114,13 @@ export function ProjectEditClient({ id }: { id: string }) {
           languages: data.project.languages,
           githubLink: data.project.githubLink || '',
           liveLink: data.project.liveLink || '',
-          image: imageUrl
+          image: imageUrl,
+          gifUrl: data.project.gifUrl || ''
         })
+        // Set GIF preview if project already has a GIF
+        if (data.project.gifUrl) {
+          setGifPreview(data.project.gifUrl)
+        }
       } else {
         setProjectNotFound(true)
       }
@@ -257,7 +269,7 @@ export function ProjectEditClient({ id }: { id: string }) {
     } catch (error) {
       console.error('Error uploading image:', error)
       alert('Failed to upload image. Please try again.')
-      return form.image
+      throw error // Don't silently return blob URL
     } finally {
       setIsUploading(false)
     }
@@ -265,6 +277,51 @@ export function ProjectEditClient({ id }: { id: string }) {
 
   const triggerFileInput = () => {
     fileInputRef.current?.click()
+  }
+
+  const handleGifChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type !== 'image/gif') {
+      alert('Please upload a GIF file (.gif)')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('GIF file size exceeds 10MB limit')
+      return
+    }
+    setUploadedGif(file)
+    setGifPreview(URL.createObjectURL(file))
+  }
+
+  const uploadGif = async (): Promise<string> => {
+    if (!uploadedGif) return form.gifUrl
+
+    setIsUploadingGif(true)
+    setGifUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadedGif)
+      formData.append('projectId', id)
+
+      const response = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (!response.ok) throw new Error('GIF upload failed')
+
+      const data = await response.json()
+      if (data.success) {
+        setGifUploadProgress(100)
+        return data.imageUrl
+      } else {
+        throw new Error(data.error || 'GIF upload failed')
+      }
+    } catch (error) {
+      console.error('Error uploading GIF:', error)
+      alert('Failed to upload GIF. Please try again.')
+      throw error
+    } finally {
+      setIsUploadingGif(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -277,16 +334,21 @@ export function ProjectEditClient({ id }: { id: string }) {
       if (uploadedImage) {
         imageUrl = await uploadImage()
       }
+
+      // Upload GIF if a new one was selected
+      let gifUrl = form.gifUrl
+      if (uploadedGif) {
+        gifUrl = await uploadGif()
+      }
       
       // Update project using the API
       const response = await fetch(`/api/projects/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          image: { src: imageUrl } // Properly structure the image data for the API
+          image: { src: imageUrl },
+          gifUrl,
         }),
       })
       
@@ -533,15 +595,14 @@ export function ProjectEditClient({ id }: { id: string }) {
                           }}
                         />
                       ) : (
-                        <Image 
-                          src={getValidMediaUrl(imagePreview || form.image)} 
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img 
+                          src={imagePreview || getValidMediaUrl(form.image)} 
                           alt="Project thumbnail" 
                           className="w-full h-full object-cover"
-                          width={600}
-                          height={400}
                           onError={(e) => {
                             const fallbackImage = '/proj1.png';
-                            if (e.currentTarget.src !== fallbackImage) {
+                            if (!e.currentTarget.src.endsWith(fallbackImage)) {
                               e.currentTarget.src = fallbackImage;
                             }
                           }}
@@ -608,6 +669,67 @@ export function ProjectEditClient({ id }: { id: string }) {
                 <p className="text-sm text-gray-400">
                   Supports JPG, PNG, GIF, WEBP, WEBM, MP4, MOV (Max size: 5MB for images, 10MB for GIFs, 50MB for videos)
                 </p>
+              </div>
+            </div>
+
+            {/* GIF Upload for Portfolio Display */}
+            <div className="mb-8">
+              <label className="block text-gray-400 mb-1">Portfolio GIF <span className="text-xs text-violet-400">(optional — prioritized over main image in portfolio)</span></label>
+              <div className="flex flex-col space-y-3">
+                <input
+                  type="file"
+                  ref={gifFileInputRef}
+                  onChange={handleGifChange}
+                  accept=".gif,image/gif"
+                  className="hidden"
+                />
+
+                {gifPreview ? (
+                  <div className="relative h-32 rounded-lg overflow-hidden bg-gray-800">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={gifPreview}
+                      alt="GIF preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    {isUploadingGif && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70">
+                        <div className="w-3/4 h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-violet-500 transition-all duration-300" style={{ width: `${gifUploadProgress}%` }} />
+                        </div>
+                        <p className="mt-2 text-sm text-white">{gifUploadProgress}%</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-24 border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center text-gray-500 text-sm">
+                    No GIF selected
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => gifFileInputRef.current?.click()}
+                  className="w-full py-2 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                >
+                  {uploadedGif || form.gifUrl ? 'Change GIF' : 'Upload GIF'}
+                </button>
+
+                {(uploadedGif || form.gifUrl) && (
+                  <div className="flex items-center gap-2 p-3 bg-green-900/30 border border-green-700 rounded-lg">
+                    <span className="text-green-400 text-sm">
+                      {uploadedGif ? <>New GIF: <strong>{uploadedGif.name}</strong> ({(uploadedGif.size / (1024 * 1024)).toFixed(2)} MB)</> : <>Current GIF: <strong>{form.gifUrl}</strong></>}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setUploadedGif(null); setGifPreview(''); setForm(prev => ({ ...prev, gifUrl: '' })); }}
+                      className="ml-auto text-red-400 hover:text-red-300 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             

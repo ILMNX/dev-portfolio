@@ -18,6 +18,10 @@ export async function initializeDatabase() {
       if (!columns.includes('selected_order')) {
         await turso.execute(`ALTER TABLE projects ADD COLUMN selected_order INTEGER DEFAULT 0`);
       }
+
+      if (!columns.includes('gif_url')) {
+        await turso.execute(`ALTER TABLE projects ADD COLUMN gif_url TEXT`);
+      }
     } catch {
       // Silent fail for schema update
     }

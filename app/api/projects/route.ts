@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       category: data.category || '',
       languages: data.languages,
       image: imageData,
+      gifUrl: data.gifUrl || '',
       githubLink: data.githubLink || '',
       liveLink: data.liveLink || ''
     };

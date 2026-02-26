@@ -12,6 +12,7 @@ interface Project {
     title: string
     description: string
     image: { src: string } | string
+    gifUrl?: string
     languages: string[]
     details?: string
     githubLink?: string
@@ -46,11 +47,6 @@ const THEME = {
 const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-}
-
-const slideInLeft = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
 }
 
 // Custom hooks
@@ -120,7 +116,9 @@ const ProjectCard: React.FC<{
             }
             ${isMobile ? 'min-h-[120px]' : 'min-h-[140px]'}
         `}
-        variants={slideInLeft}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.98 }}
     >
@@ -255,6 +253,11 @@ const ProjectDisplay: React.FC<{
                     alt={project.title}
                     className="w-full h-full object-cover transition-all duration-500"
                     loading="lazy"
+                    onError={(e) => {
+                        if (!e.currentTarget.src.endsWith('/proj1.gif')) {
+                            e.currentTarget.src = '/proj1.gif';
+                        }
+                    }}
                 />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -587,18 +590,27 @@ export const Portfolio = () => {
         const fallbackImage = '/proj1.gif';
         try {
             if (!project?.image) return fallbackImage;
+
+            const resolveSrc = (src: string): string => {
+                if (!src || src.includes('[object Object]')) return fallbackImage;
+                // Blob URLs are temporary (created during upload sessions) and invalid outside that session
+                if (src.startsWith('blob:')) return fallbackImage;
+                if (src.includes('uploads/'))
+                    return src.startsWith('/') ? src : '/' + src;
+                return src;
+            };
+
+            // Prefer gifUrl over the main image for portfolio display
+            if (project.gifUrl && project.gifUrl.trim()) {
+                const resolved = resolveSrc(project.gifUrl.trim());
+                if (resolved !== fallbackImage) return resolved;
+            }
+
             if (typeof project.image === 'object' && project.image?.src) {
-                const src = project.image.src;
-                return src.includes('uploads/') 
-                    ? (src.startsWith('/') ? src : '/' + src)
-                    : src;
+                return resolveSrc(project.image.src);
             }
             if (typeof project.image === 'string') {
-                const src = project.image.trim();
-                if (!src || src.includes('[object Object]')) return fallbackImage;
-                return src.includes('uploads/') 
-                    ? (src.startsWith('/') ? src : '/' + src)
-                    : src;
+                return resolveSrc(project.image.trim());
             }
             return fallbackImage;
         } catch {
@@ -674,7 +686,7 @@ export const Portfolio = () => {
                         className={`
                             ${isMobile 
                                 ? 'order-2' 
-                                : 'lg:w-2/5 pr-4 pl-2 ml-[-8px] max-h-[700px] overflow-visible'
+                                : 'lg:w-2/5 shrink-0 pr-4 pl-2 ml-[-8px] max-h-[700px] overflow-y-auto'
                             }
                         `}
                         variants={fadeInUp}
@@ -700,7 +712,7 @@ export const Portfolio = () => {
 
                     {/* Main Display */}
                     <motion.div 
-                        className={`${isMobile ? 'order-1' : 'lg:w-4/5'}`}
+                        className={`${isMobile ? 'order-1' : 'lg:flex-1 min-w-0'}`}
                         variants={fadeInUp}
                         initial="hidden"
                         animate="visible"
