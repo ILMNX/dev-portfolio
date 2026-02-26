@@ -1,15 +1,14 @@
-'use client'
-
 import { Poppins } from "next/font/google"
 import "./globals.css"
 import ClientWrapper from '@/components/ClientWrapper'
-import { DarkLightMode } from "@/components/DarkLightMode"
-import { ThemeProvider } from "next-themes"
+import Providers from '@/components/Providers'
 import { siteConfig, personStructuredData, websiteStructuredData } from "@/lib/metadata"
 
+// Only load the 2 weights actually used across the site
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "700", "800", "900"],
+  weight: ["400", "700"],
+  display: "swap",
 })
 
 export default function RootLayout({
@@ -46,19 +45,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${poppins.className} antialiased`}>
-        <ThemeProvider
-          attribute="class" // adds `class="light"` / `class="dark"` to <html>
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <Providers>
           <ClientWrapper>
             {children}
           </ClientWrapper>
-        </ThemeProvider>
-        <div className="fixed top-4 right-4 z-50">
-          <DarkLightMode />
-        </div>
+        </Providers>
       </body>
     </html>
   )

@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
-    unoptimized: true, // This allows handling dynamic local images better
   },
   experimental: {
     // Ensure proper metadata handling in Next.js 15.3.0

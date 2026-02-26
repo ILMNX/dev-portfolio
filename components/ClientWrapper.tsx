@@ -12,10 +12,12 @@ export default function ClientWrapper({ children }: ClientWrapperProps) {
 
   return (
     <>
+      {/* Children always render — no blocking */}
+      {children}
+      {/* Preloader sits on top as a fixed overlay */}
       {isPreloaderVisible && (
         <Preloader onLoadComplete={() => setIsPreloaderVisible(false)} />
       )}
-      {!isPreloaderVisible && children}
     </>
   )
 }
