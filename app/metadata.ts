@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'your-google-verification-code',
+    google: 'c2dd06541e4a304b',
   },
   other: {
     'author': 'Gilbert Sibuea',
