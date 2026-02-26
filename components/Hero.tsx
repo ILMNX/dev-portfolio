@@ -129,17 +129,6 @@ export const Hero = () => {
         }
     }
 
-    const titleVariants = {
-        hidden: { opacity: 0, y: 50 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.8,
-                ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]
-            }
-        }
-    }
 
     return(
         <section id="hero" className="relative grid min-h-screen place-content-center overflow-hidden px-4 py-24 text-gray-200">
