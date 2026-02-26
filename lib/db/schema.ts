@@ -10,6 +10,7 @@ export const createProjectsTable = `
     details TEXT,
     languages TEXT NOT NULL, -- Stored as JSON string
     image_url TEXT,
+    gif_url TEXT,
     github_link TEXT,
     live_link TEXT,
     selected INTEGER DEFAULT 0, -- 0: not selected, 1: selected for portfolio

@@ -10,10 +10,11 @@ interface Project {
   category?: string;
   languages: string[];
   image: { src: string };
+  gifUrl?: string; // Optional GIF for portfolio display (prioritized over image)
   githubLink?: string;
   liveLink?: string;
-  selected?: number; // 0: not selected, 1: selected
-  selectedOrder?: number; // Order in the selected projects list
+  selected?: number;
+  selectedOrder?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -26,8 +27,9 @@ interface ProjectRow {
   description: string;
   details: string | null;
   category: string | null;
-  languages: string; // This is JSON string in the database
+  languages: string;
   image_url: string | null;
+  gif_url: string | null;
   github_link: string | null;
   live_link: string | null;
   selected: number;
@@ -68,7 +70,8 @@ function rowToProject(row: ProjectRow): Project {
     details: row.details || '',
     category: row.category || '',
     languages: JSON.parse(row.languages),
-    image: { src: imageSrc }, // This should now use the potentially corrected string
+    image: { src: imageSrc },
+    gifUrl: row.gif_url || '',
     githubLink: row.github_link || '',
     liveLink: row.live_link || '',
     selected: row.selected,
@@ -115,8 +118,8 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<Proje
       sql: `
         INSERT INTO projects (
           title, year, description, details, category, languages, 
-          image_url, github_link, live_link
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          image_url, gif_url, github_link, live_link
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *
       `,
       args: [
@@ -127,6 +130,7 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<Proje
         project.category || '',
         JSON.stringify(project.languages),
         project.image.src,
+        project.gifUrl || '',
         project.githubLink || '',
         project.liveLink || ''
       ]
@@ -157,9 +161,9 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
     const updatedProject = {
       ...currentProject,
       ...project,
-      // Special handling for nested fields
       languages: project.languages || currentProject.languages,
       image: project.image || currentProject.image,
+      gifUrl: project.gifUrl !== undefined ? project.gifUrl : currentProject.gifUrl,
     };
     
     const result = await turso.execute({
@@ -171,7 +175,8 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
           details = ?, 
           category = ?,
           languages = ?, 
-          image_url = ?, 
+          image_url = ?,
+          gif_url = ?,
           github_link = ?, 
           live_link = ?,
           updated_at = CURRENT_TIMESTAMP
@@ -186,6 +191,7 @@ export async function updateProject(id: number, project: Partial<Project>): Prom
         updatedProject.category || '',
         JSON.stringify(updatedProject.languages),
         updatedProject.image.src,
+        updatedProject.gifUrl || '',
         updatedProject.githubLink || '',
         updatedProject.liveLink || '',
         id

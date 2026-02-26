@@ -63,6 +63,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       category: data.category || '',
       languages: data.languages,
       image: imageData,
+      gifUrl: data.gifUrl || '',
       githubLink: data.githubLink || '',
       liveLink: data.liveLink || ''
     });
