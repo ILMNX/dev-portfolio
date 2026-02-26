@@ -22,7 +22,10 @@ export const Hero = () => {
         resizeCanvas()
         window.addEventListener('resize', resizeCanvas)
 
-        // Lightweight particle system
+        // Fewer particles on mobile to reduce CPU load
+        const isMobile = window.innerWidth < 768
+        const particleCount = isMobile ? 20 : 50
+
         const particles: Array<{
             x: number
             y: number
@@ -31,8 +34,7 @@ export const Hero = () => {
             alpha: number
         }> = []
 
-        // Create particles
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < particleCount; i++) {
             particles.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
@@ -42,50 +44,56 @@ export const Hero = () => {
             })
         }
 
-        // Animation loop
+        let rafId: number
+
+        // Animation loop — skips frames when tab is hidden
         const animate = () => {
+            if (document.hidden) {
+                rafId = requestAnimationFrame(animate)
+                return
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
             particles.forEach((particle, i) => {
-                // Update position
                 particle.x += particle.vx
                 particle.y += particle.vy
 
-                // Wrap around edges
                 if (particle.x < 0) particle.x = canvas.width
                 if (particle.x > canvas.width) particle.x = 0
                 if (particle.y < 0) particle.y = canvas.height
                 if (particle.y > canvas.height) particle.y = 0
 
-                // Draw particle
                 ctx.beginPath()
                 ctx.arc(particle.x, particle.y, 1, 0, Math.PI * 2)
                 ctx.fillStyle = `rgba(172, 158, 227, ${particle.alpha})`
                 ctx.fill()
 
-                // Draw connections
+                // Connection distance is shorter on mobile (fewer checks)
+                const connectionDist = isMobile ? 70 : 100
                 particles.slice(i + 1).forEach(other => {
                     const dx = particle.x - other.x
                     const dy = particle.y - other.y
                     const distance = Math.sqrt(dx * dx + dy * dy)
 
-                    if (distance < 100) {
+                    if (distance < connectionDist) {
                         ctx.beginPath()
                         ctx.moveTo(particle.x, particle.y)
                         ctx.lineTo(other.x, other.y)
-                        ctx.strokeStyle = `rgba(172, 158, 227, ${0.1 * (1 - distance / 100)})`
+                        ctx.strokeStyle = `rgba(172, 158, 227, ${0.1 * (1 - distance / connectionDist)})`
                         ctx.stroke()
                     }
                 })
             })
 
-            requestAnimationFrame(animate)
+            rafId = requestAnimationFrame(animate)
         }
 
         animate()
 
         return () => {
             window.removeEventListener('resize', resizeCanvas)
+            cancelAnimationFrame(rafId)
         }
     }, [])
 
@@ -163,20 +171,14 @@ export const Hero = () => {
                     Open for work
                 </motion.span>
                 
-                <motion.h1 
-                    variants={titleVariants}
-                    className="text-white/40 text-7xl font-black"
-                >
+                {/* LCP elements: render immediately visible, no animation delay */}
+                <h1 className="text-white/40 text-7xl font-black">
                     Hi, I am
-                </motion.h1>
+                </h1>
                 
-                <motion.h1 
-                    variants={titleVariants}
-                    transition={{ delay: 0.2 }}
-                    className="max-w-3xl bg-gradient-to-br from-white to-gray-400 bg-clip-text font-black leading-tight text-transparent md:text-7xl"
-                > 
+                <h1 className="max-w-3xl bg-gradient-to-br from-white to-gray-400 bg-clip-text font-black leading-tight text-transparent md:text-7xl">
                     Gilbert Hasiholan S
-                </motion.h1>
+                </h1>
 
                 <motion.p 
                     variants={itemVariants}

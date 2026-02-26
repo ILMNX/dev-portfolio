@@ -10,69 +10,26 @@ interface PreloaderProps {
 const Preloader = ({ onLoadComplete }: PreloaderProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [loadingProgress, setLoadingProgress] = useState(0)
-  const [loadingStage, setLoadingStage] = useState('Initializing...')
 
   useEffect(() => {
-    const loadResources = async () => {
-      try {
-        // Stage 1: Load critical data
-        setLoadingStage('Loading projects...')
-        setLoadingProgress(20)
-        
-        const projectsResponse = await fetch('/api/projects/selected')
-        const projectsData = await projectsResponse.json()
-        
-        setLoadingProgress(40)
-        setLoadingStage('Loading assets...')
-        
-        // Stage 2: Preload critical images
-        const imagesToPreload: string[] = []
-        if (projectsData.success && projectsData.projects) {
-          projectsData.projects.forEach((project: { image?: string | { src?: string } }) => {
-            if (project.image) {
-              const imgSrc = typeof project.image === 'string' ? project.image : project.image?.src
-              if (imgSrc) imagesToPreload.push(imgSrc)
-            }
-          })
-        }
-        
-        // Preload images
-        const imagePromises = imagesToPreload.slice(0, 3).map((src) => {
-          return new Promise((resolve) => {
-            const img = new Image()
-            img.onload = resolve
-            img.onerror = resolve // Continue even if image fails
-            img.src = src
-          })
-        })
-        
-        await Promise.all(imagePromises)
-        setLoadingProgress(70)
-        setLoadingStage('Preparing experience...')
-        
-        // Stage 3: Load other critical resources
-        await new Promise(resolve => setTimeout(resolve, 500)) // Minimum display time
-        
-        setLoadingProgress(100)
-        setLoadingStage('Ready!')
-        
-        // Small delay before hiding
-        setTimeout(() => {
-          setIsLoading(false)
-          onLoadComplete?.()
-        }, 300)
-        
-      } catch (error) {
-        console.error('Preloader error:', error)
-        // Still proceed even if loading fails
-        setTimeout(() => {
-          setIsLoading(false)
-          onLoadComplete?.()
-        }, 1000)
-      }
-    }
+    // No API calls, no image preloading — just a quick visual cue capped at 800ms
+    const steps = [20, 50, 80, 100]
+    const delays = [100, 250, 450, 650]
 
-    loadResources()
+    const timers = steps.map((val, i) =>
+      setTimeout(() => setLoadingProgress(val), delays[i])
+    )
+
+    // Dismiss at 800ms max
+    const dismiss = setTimeout(() => {
+      setIsLoading(false)
+      onLoadComplete?.()
+    }, 800)
+
+    return () => {
+      timers.forEach(clearTimeout)
+      clearTimeout(dismiss)
+    }
   }, [onLoadComplete])
 
   if (!isLoading) return null
@@ -115,26 +72,6 @@ const Preloader = ({ onLoadComplete }: PreloaderProps) => {
             transition={{ duration: 0.3, ease: "easeOut" }}
           />
         </div>
-
-        {/* Loading Stage Text */}
-        <motion.div
-          key={loadingStage}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-gray-400 text-sm"
-        >
-          {loadingStage}
-        </motion.div>
-
-        {/* Percentage */}
-        <motion.div
-          className="text-white text-lg font-semibold mt-2"
-          key={loadingProgress}
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-        >
-          {Math.round(loadingProgress)}%
-        </motion.div>
       </div>
     </motion.div>
   )
