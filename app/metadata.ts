@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: `${siteConfig.name} - Full Stack Developer`,
+        alt: `Gilbert Sibuea - Full Stack Developer & Software Engineer`,
       },
     ],
   },
@@ -43,6 +43,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: [siteConfig.ogImage],
     creator: '@gilbert_dev',
+    site: '@gilbert_dev',
   },
   robots: {
     index: true,
@@ -57,5 +58,18 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'your-google-verification-code',
+  },
+  other: {
+    'author': 'Gilbert Sibuea',
+    'designer': 'Gilbert Sibuea',
+    'owner': 'Gilbert Sibuea',
+    'copyright': 'Gilbert Sibuea',
+    'reply-to': 'contact@gilbertsibuea.com',
+    'language': 'en',
+    'revisit-after': '7 days',
+    'category': 'Portfolio, Web Development, Software Engineering',
+    'classification': 'Personal Portfolio',
+    'HandheldFriendly': 'True',
+    'MobileOptimized': '320',
   },
 };

@@ -36,8 +36,8 @@ const Footer = dynamic(() => import("@/components/Footer").then(mod => ({ defaul
 });
 
 export const metadata: Metadata = generateMetadata({
-  title: "Home",
-  description: `Welcome to ${siteConfig.name}'s portfolio. Discover innovative web applications, mobile solutions, and software projects built with cutting-edge technologies like React, Next.js, Node.js, and more. Available for freelance projects and full-time opportunities.`,
+  title: "Gilbert Sibuea - Full Stack Developer Portfolio",
+  description: `Gilbert Hasiholan Sibuea — Full Stack Developer based in Bandar Lampung, Indonesia. Explore innovative web applications, mobile solutions, and software projects built with React, Next.js, Node.js, and more. Available for freelance projects and full-time opportunities. Visit gilbertsibuea.com.`,
   url: siteConfig.url,
 });
 

@@ -1,25 +1,31 @@
 import type { Metadata } from 'next'
 
 export const siteConfig = {
-  name: 'Gilbert Hasiholan Sibuea',
-  title: 'Gilbert Hasiholan Sibuea - Full Stack Developer & Software Engineer',
-  description: 'Gilbert Hasiholan Sibuea is a passionate Full Stack Developer and Software Engineer specializing in modern web technologies, mobile applications, and innovative digital solutions.',
-  url: 'https://gilbersibuea.com', // Update with your actual domain
+  name: 'Gilbert Sibuea',
+  title: 'Gilbert Sibuea - Full Stack Developer & Software Engineer | gilbertsibuea.com',
+  description: 'Gilbert Sibuea (Gilbert Hasiholan Sibuea) is a passionate Full Stack Developer and Software Engineer based in Bandar Lampung, Indonesia. Specializing in React, Next.js, Node.js, and modern web technologies. Visit gilbertsibuea.com to explore projects and get in touch.',
+  url: 'https://gilbertsibuea.com',
   ogImage: '/profile.png',
   links: {
     twitter: 'https://twitter.com/gilbert_dev', // Update with actual handle
-    github: 'https://github.com/ILMNX', // Update with actual profile
-    linkedin: 'https://www.linkedin.com/in/gilbert-sibuea-93b524246/', // Update with actual profile
+    github: 'https://github.com/ILMNX',
+    linkedin: 'https://www.linkedin.com/in/gilbert-sibuea-93b524246/',
   },
-  creator: 'Gilbert Hasiholan Sibuea',
+  creator: 'Gilbert Sibuea',
   keywords: [
+    'Gilbert Sibuea',
     'Gilbert Hasiholan Sibuea',
+    'gilbertsibuea.com',
+    'Gilbert Sibuea developer',
+    'Gilbert Sibuea portfolio',
+    'Gilbert Sibuea Full Stack Developer',
+    'Gilbert Sibuea Software Engineer',
     'Full Stack Developer',
     'Software Engineer',
-    'Web Developer',
+    'Web Developer Indonesia',
     'React Developer',
-    'Next.js',
-    'Node.js',
+    'Next.js Developer',
+    'Node.js Developer',
     'JavaScript',
     'TypeScript',
     'Frontend Developer',
@@ -32,7 +38,8 @@ export const siteConfig = {
     'Database Design',
     'UI/UX Implementation',
     'Responsive Design',
-    'Modern Web Technologies'
+    'Bandar Lampung developer',
+    'Indonesia developer'
   ]
 }
 
@@ -102,12 +109,28 @@ export function generateMetadata({
 export const personStructuredData = {
   '@context': 'https://schema.org',
   '@type': 'Person',
-  name: 'Gilbert Hasiholan Sibuea',
+  name: 'Gilbert Sibuea',
+  alternateName: [
+    'Gilbert Hasiholan Sibuea',
+    'Gilbert H. Sibuea',
+    'gilbertsibuea'
+  ],
   jobTitle: 'Full Stack Developer',
-  description: 'Passionate Full Stack Developer and Software Engineer specializing in modern web technologies',
+  description: 'Gilbert Sibuea is a passionate Full Stack Developer and Software Engineer based in Bandar Lampung, Indonesia, specializing in modern web technologies including React, Next.js, and Node.js.',
   url: siteConfig.url,
   image: `${siteConfig.url}${siteConfig.ogImage}`,
+  email: 'contact@gilbertsibuea.com',
+  nationality: {
+    '@type': 'Country',
+    name: 'Indonesia'
+  },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Bandar Lampung',
+    addressCountry: 'ID'
+  },
   sameAs: [
+    siteConfig.url,
     siteConfig.links.github,
     siteConfig.links.linkedin,
     siteConfig.links.twitter,
@@ -128,11 +151,11 @@ export const personStructuredData = {
   ],
   alumniOf: {
     '@type': 'Organization',
-    name: 'Universitas Lampung' // Update with actual education
+    name: 'Universitas Lampung'
   },
   worksFor: {
     '@type': 'Organization',
-    name: 'Freelance Developer' // Update with current employment
+    name: 'Freelance Developer'
   }
 }
 
