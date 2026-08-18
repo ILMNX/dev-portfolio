@@ -163,7 +163,7 @@ export default function HealthCheck() {
       )}
 
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {(data?.services ?? Array.from({ length: 5 }).map((_, index) => null)).map((service, index) => {
+        {(data?.services ?? Array.from({ length: 5 }, () => null)).map((service, index) => {
           if (!service) {
             return (
               <div key={index} className="bg-gray-900 rounded-2xl border border-white/5 p-5 animate-pulse">
