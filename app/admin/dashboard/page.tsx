@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import HealthSummaryCard from '@/components/admin/HealthSummaryCard'
 
 // Dashboard components
 const AdminDashboard = () => {
@@ -109,11 +110,7 @@ const AdminDashboard = () => {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="bg-gray-900 p-6 rounded-xl"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Recent Activity</h2>
-              <span className="text-sm px-2 py-1 bg-green-500/20 text-green-400 rounded-full">Active</span>
-            </div>
-            <p className="text-gray-400 mb-4">Your portfolio site is running normally</p>
+            <HealthSummaryCard />
           </motion.div>
         </div>
 
@@ -151,6 +148,17 @@ const AdminDashboard = () => {
               >
                 <span className="block text-2xl mb-2">⭐</span>
                 <span>Selected Projects</span>
+              </motion.div>
+            </Link>
+
+            <Link href="/admin/health">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-gray-900 p-4 rounded-xl text-center hover:bg-gray-800 transition-colors"
+              >
+                <span className="block text-2xl mb-2">💚</span>
+                <span>System Health</span>
               </motion.div>
             </Link>
           </div>
