@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { turso } from '@/lib/db/turso';
+import { initializeDatabase } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    await initializeDatabase();
     const { username, password } = await request.json();
     
     // Find admin in database

@@ -25,6 +25,9 @@ export const createAdminTable = `
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
+    email TEXT UNIQUE,
+    reset_token TEXT,
+    reset_token_expires INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `;

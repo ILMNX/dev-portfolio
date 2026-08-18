@@ -29,6 +29,12 @@ const GitHubContributions = ({ username = "ILMNX" }: { username?: string }) => {
       setError(null);
 
       const response = await fetch(`/api/github-contributions?username=${username}`);
+      const contentType = response.headers.get('content-type') || '';
+
+      if (!contentType.includes('application/json')) {
+        throw new Error('Failed to fetch GitHub contributions');
+      }
+
       const data = await response.json();
 
       if (!response.ok || !data.success) {

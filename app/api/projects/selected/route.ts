@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSelectedProjects, updateSelectedProjects } from '@/lib/db/projects';
+import { initializeDatabase } from '@/lib/db';
 
 // GET endpoint to fetch only selected projects for the portfolio
 export async function GET() {
   try {
+    if (!process.env.TURSO_DATABASE_URL) {
+      await initializeDatabase();
+    }
     const projects = await getSelectedProjects();
     
     // Enhanced debugging

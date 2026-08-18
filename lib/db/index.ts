@@ -26,6 +26,29 @@ export async function initializeDatabase() {
       // Silent fail for schema update
     }
 
+    try {
+      const adminColumnCheck = await turso.execute(`PRAGMA table_info(admins)`);
+      const adminColumns = adminColumnCheck.rows.map((row) => row.name as string);
+
+      if (!adminColumns.includes('email')) {
+        await turso.execute(`ALTER TABLE admins ADD COLUMN email TEXT`);
+      }
+      if (!adminColumns.includes('reset_token')) {
+        await turso.execute(`ALTER TABLE admins ADD COLUMN reset_token TEXT`);
+      }
+      if (!adminColumns.includes('reset_token_expires')) {
+        await turso.execute(`ALTER TABLE admins ADD COLUMN reset_token_expires INTEGER`);
+      }
+
+      await turso.execute(`
+        CREATE UNIQUE INDEX IF NOT EXISTS admins_email_unique
+        ON admins(email)
+        WHERE email IS NOT NULL AND email != ''
+      `);
+    } catch {
+      // Silent fail for admin schema update
+    }
+
     const adminResult = await turso.execute("SELECT COUNT(*) as count FROM admins");
     const adminCount = adminResult.rows[0].count;
 

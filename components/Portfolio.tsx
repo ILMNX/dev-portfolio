@@ -78,6 +78,12 @@ const useProjects = () => {
             try {
                 const baseUrl = window.location.origin
                 const res = await fetch(`${baseUrl}/api/projects/selected`)
+                const contentType = res.headers.get('content-type') || ''
+
+                if (!res.ok || !contentType.includes('application/json')) {
+                    throw new Error('Failed to fetch projects')
+                }
+
                 const data = await res.json()
                 
                 if (data.success && data.projects?.length > 0) {

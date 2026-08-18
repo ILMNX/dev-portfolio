@@ -148,7 +148,7 @@ export const Hero = () => {
             />
             
             <motion.div 
-                className="z-10 flex flex-col items-center"
+                className="z-10 flex w-full max-w-4xl flex-col items-center text-center"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -161,11 +161,11 @@ export const Hero = () => {
                 </motion.span>
                 
                 {/* LCP elements: render immediately visible, no animation delay */}
-                <h1 className="text-white/40 text-7xl font-black">
+                <h1 className="text-white/40 text-4xl sm:text-5xl md:text-7xl font-black text-center">
                     Hi, I am
                 </h1>
                 
-                <h1 className="max-w-3xl bg-gradient-to-br from-white to-gray-400 bg-clip-text font-black leading-tight text-transparent md:text-7xl">
+                <h1 className="w-full max-w-3xl bg-gradient-to-br from-white to-gray-400 bg-clip-text font-black leading-tight text-transparent text-4xl sm:text-5xl md:text-7xl text-center">
                     Gilbert Hasiholan Sibuea
                 </h1>
 
@@ -236,7 +236,7 @@ export const Hero = () => {
                         scale: 1.02,
                         transition: { duration: 0.2 }
                     }}
-                    className="mt-32 flex flex-col items-center w-full group"
+                    className="mt-12 md:mt-16 flex flex-col items-center w-full group"
                 >
                     <motion.div
                         className="relative rounded-2xl px-6 py-4 shadow-2xl flex flex-col items-center w-full max-w-xl border border-white/10 overflow-hidden"
